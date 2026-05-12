@@ -1,0 +1,11 @@
+name: perkos-tech
+version: 0.1.0
+description: PerkOS Knowledge, x402, ERC-8004 identity, and organization-aware context tools.
+provides_tools:
+  - perkos_knowledge_query
+  - perkos_skill_manifest
+  - perkos_x402_policy
+requires_env:
+  - name: KNOWLEDGE_BASE_URL
+    description: PerkOS Knowledge base URL. Defaults to https://knowledge.perkos.xyz if unset.
+    secret: false
