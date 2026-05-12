@@ -1,0 +1,38 @@
+{
+  "name": "@perkos/perkos-tech-plugin",
+  "version": "0.1.0",
+  "description": "PerkOS technology integration for OpenClaw, Hermes, MCP, and AgentSkills-compatible runtimes.",
+  "type": "module",
+  "license": "MIT",
+  "private": false,
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "check": "tsc --noEmit -p tsconfig.json",
+    "mcp": "node dist/mcp/server.js"
+  },
+  "files": [
+    "dist/",
+    "openclaw.plugin.json",
+    "skills/",
+    "hermes/",
+    "examples/",
+    "README.md",
+    "LICENSE"
+  ],
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.21.0",
+    "@sinclair/typebox": "^0.34.41"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3",
+    "openclaw": ">=2026.5.7"
+  },
+  "openclaw": {
+    "extensions": ["./src/index.ts"],
+    "runtimeExtensions": ["./dist/src/index.js"],
+    "compat": {
+      "pluginApi": ">=2026.3.24-beta.2",
+      "minGatewayVersion": "2026.3.24-beta.2"
+    }
+  }
+}

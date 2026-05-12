@@ -1,0 +1,13 @@
+{
+  "plugins": {
+    "entries": {
+      "perkos-tech": {
+        "enabled": true,
+        "config": {
+          "baseUrl": "https://knowledge.perkos.xyz",
+          "sendAgentId": false
+        }
+      }
+    }
+  }
+}

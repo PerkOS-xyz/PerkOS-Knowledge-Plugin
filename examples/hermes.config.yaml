@@ -1,0 +1,10 @@
+mcp_servers:
+  perkos_tech:
+    command: "node"
+    args: ["/path/to/PerkOS-Tech-Plugin/dist/mcp/server.js"]
+    env:
+      KNOWLEDGE_BASE_URL: "https://knowledge.perkos.xyz"
+    tools:
+      include: [knowledge_query, skill_manifest, x402_policy]
+      resources: false
+      prompts: false
