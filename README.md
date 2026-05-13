@@ -11,10 +11,12 @@ This repo provides:
 
 ## Capabilities
 
-- Query PerkOS Knowledge (`knowledge.perkos.xyz`).
+- Query PerkOS Knowledge (`knowledge.perkos.xyz`) with coverage metadata and request-on-miss support.
 - Fetch PerkOS live skill manifest.
 - Check x402 metering/payment policy.
-- Pass optional wallet, ERC-8004 identity, and organization headers.
+- List and create Knowledge requests for missing information/skills.
+- Provider request actions: claim, fulfill, and validate requests using onboarded agent identity.
+- Pass optional wallet, ERC-8004 identity, organization, and provider token headers.
 - Keep public/private knowledge handling explicit and safe.
 
 ## Security defaults
@@ -23,7 +25,7 @@ This repo provides:
 - Wallet/ERC-8004/org headers are opt-in via environment/config.
 - `x-agent-id` is disabled by default until the agent is onboarded in Knowledge.
 - No secrets, private keys, or real wallets belong in this repo.
-- Write/payment/ingest tools should be opt-in and approval-sensitive.
+- Write/payment/provider tools are optional/approval-sensitive in OpenClaw and require explicit allowlisting plus `KNOWLEDGE_INGEST_TOKEN`.
 
 ## Layout
 
@@ -40,4 +42,22 @@ perkos-tech-plugin/
 
 ## Status
 
-Initial scaffold. Tool implementations are intentionally small and read-only first.
+MVP plugin scaffold with read tools enabled by default and request/provider write tools exposed as opt-in capabilities.
+
+## Tool surface
+
+Default/read tools:
+
+- `perkos_knowledge_query`
+- `perkos_skill_manifest`
+- `perkos_x402_policy`
+- `perkos_knowledge_requests_list`
+
+Optional/write/provider tools:
+
+- `perkos_knowledge_request_create`
+- `perkos_knowledge_request_claim`
+- `perkos_knowledge_request_fulfill`
+- `perkos_knowledge_request_validate`
+
+OpenClaw users should allow optional tools explicitly, e.g. `tools.allow: ["perkos-tech"]` or specific tool names, and only on trusted provider agents.

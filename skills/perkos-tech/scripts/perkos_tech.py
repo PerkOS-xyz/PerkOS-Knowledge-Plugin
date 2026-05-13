@@ -4,6 +4,7 @@ import json
 import os
 import sys
 import urllib.error
+import urllib.parse
 import urllib.request
 
 BASE_URL = os.environ.get("KNOWLEDGE_BASE_URL", "https://knowledge.perkos.xyz").rstrip("/")
@@ -16,13 +17,13 @@ def openclaw_agent_id():
         try:
             with open(path, "r", encoding="utf-8") as f:
                 cfg = json.load(f)
-            return (((cfg.get("models") or {}).get("providers") or {}).get("ollama") or {}).get("headers", {}).get("x-agent-id")
+            return (((cfg.get("models") or {}).get("providers") or {}).get("ollama") or {}).get("headers", {}).get("x-agent-id") or os.environ.get("KNOWLEDGE_AGENT_ID")
         except Exception:
             continue
-    return None
+    return os.environ.get("KNOWLEDGE_AGENT_ID")
 
 
-def headers():
+def headers(auth=False):
     h = {"content-type": "application/json"}
     agent_id = openclaw_agent_id()
     if agent_id:
@@ -33,12 +34,14 @@ def headers():
         h["x-agent-erc8004"] = os.environ["KNOWLEDGE_AGENT_ERC8004"]
     if os.environ.get("KNOWLEDGE_ORG_ID"):
         h["x-organization-id"] = os.environ["KNOWLEDGE_ORG_ID"]
+    if auth and os.environ.get("KNOWLEDGE_INGEST_TOKEN"):
+        h["authorization"] = "Bearer " + os.environ["KNOWLEDGE_INGEST_TOKEN"]
     return h
 
 
-def request(method, path, body=None):
+def request(method, path, body=None, auth=False):
     data = None if body is None else json.dumps(body).encode("utf-8")
-    req = urllib.request.Request(BASE_URL + path, data=data, headers=headers(), method=method)
+    req = urllib.request.Request(BASE_URL + path, data=data, headers=headers(auth), method=method)
     try:
         with urllib.request.urlopen(req, timeout=int(os.environ.get("PERKOS_TECH_TIMEOUT", "30"))) as res:
             raw = res.read().decode("utf-8")
@@ -60,14 +63,46 @@ def main():
     q = sub.add_parser("query")
     q.add_argument("query", nargs="+", help="Question/context query")
     q.add_argument("--limit", type=int, default=int(os.environ.get("KNOWLEDGE_LIMIT", "5")))
+    q.add_argument("--create-request-on-miss", default=None)
+    q.add_argument("--desired-output", default=None)
+    r = sub.add_parser("requests")
+    r.add_argument("--status", default="open")
+    r.add_argument("--limit", type=int, default=25)
+    rc = sub.add_parser("request-create")
+    rc.add_argument("query", nargs="+")
+    rc.add_argument("--priority", default=None)
+    rc.add_argument("--desired-output", default=None)
+    claim = sub.add_parser("request-claim")
+    claim.add_argument("request")
+    claim.add_argument("--notes", default=None)
+    fulfill = sub.add_parser("request-fulfill")
+    fulfill.add_argument("request")
+    fulfill.add_argument("--item-ids", required=True)
+    fulfill.add_argument("--notes", default=None)
+    validate = sub.add_parser("request-validate")
+    validate.add_argument("request")
+    validate.add_argument("--accepted", default="true")
+    validate.add_argument("--notes", default=None)
     args = parser.parse_args()
 
     if args.cmd == "manifest":
         status, payload = request("GET", "/skill/manifest")
     elif args.cmd == "x402-policy":
         status, payload = request("GET", "/api/x402/policy")
+    elif args.cmd == "query":
+        create = None if args.create_request_on_miss is None else args.create_request_on_miss.lower() != "false"
+        status, payload = request("POST", "/skill/query", {"query": " ".join(args.query), "limit": args.limit, "createRequestOnMiss": create, "desired_output": args.desired_output})
+    elif args.cmd == "requests":
+        status, payload = request("GET", f"/knowledge/requests?status={urllib.parse.quote(args.status)}&limit={urllib.parse.quote(str(args.limit))}")
+    elif args.cmd == "request-create":
+        status, payload = request("POST", "/knowledge/requests", {"query": " ".join(args.query), "priority": args.priority, "desired_output": args.desired_output})
+    elif args.cmd == "request-claim":
+        status, payload = request("POST", f"/knowledge/requests/{urllib.parse.quote(args.request)}/claim", {"notes": args.notes}, auth=True)
+    elif args.cmd == "request-fulfill":
+        item_ids = [x.strip() for x in args.item_ids.split(",") if x.strip()]
+        status, payload = request("POST", f"/knowledge/requests/{urllib.parse.quote(args.request)}/fulfill", {"research_item_ids": item_ids, "notes": args.notes}, auth=True)
     else:
-        status, payload = request("POST", "/skill/query", {"query": " ".join(args.query), "limit": args.limit})
+        status, payload = request("POST", f"/knowledge/requests/{urllib.parse.quote(args.request)}/validate", {"accepted": args.accepted.lower() != "false", "validation_notes": args.notes}, auth=True)
 
     print(json.dumps(payload, indent=2, ensure_ascii=False))
     return 0 if 200 <= status < 300 else 1

@@ -4,7 +4,21 @@ mcp_servers:
     args: ["/path/to/PerkOS-Tech-Plugin/dist/mcp/server.js"]
     env:
       KNOWLEDGE_BASE_URL: "https://knowledge.perkos.xyz"
+      # Provider actions only:
+      # KNOWLEDGE_AGENT_ID: "perky"
+      # KNOWLEDGE_SEND_AGENT_ID: "1"
+      # KNOWLEDGE_ORG_ID: "org_perkos"
+      # KNOWLEDGE_INGEST_TOKEN: "${KNOWLEDGE_INGEST_TOKEN}"
     tools:
-      include: [knowledge_query, skill_manifest, x402_policy]
+      include:
+        - knowledge_query
+        - skill_manifest
+        - x402_policy
+        - knowledge_requests_list
+        - knowledge_request_create
+        # Provider/write tools: enable only for trusted provider agents.
+        # - knowledge_request_claim
+        # - knowledge_request_fulfill
+        # - knowledge_request_validate
       resources: false
       prompts: false

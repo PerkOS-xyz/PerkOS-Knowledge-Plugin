@@ -9,5 +9,15 @@
         }
       }
     }
+  },
+  "tools": {
+    // Read tools are available by plugin contract. Enable optional write/provider
+    // tools only on trusted agents that may create/claim/fulfill/validate requests.
+    "allow": [
+      "perkos_knowledge_request_create"
+      // "perkos_knowledge_request_claim",
+      // "perkos_knowledge_request_fulfill",
+      // "perkos_knowledge_request_validate"
+    ]
   }
 }

@@ -22,6 +22,7 @@ Use this skill when an agent needs live PerkOS context or PerkOS infrastructure 
 - x402 policy checks.
 - ERC-8004 / agent identity-aware requests.
 - Public/private organization knowledge handling.
+- Knowledge request loop: create/list/claim/fulfill/validate research or skill requests.
 - A2A/council context.
 
 ## Quick commands
@@ -30,6 +31,7 @@ Use this skill when an agent needs live PerkOS context or PerkOS infrastructure 
 node skills/perkos-tech/scripts/perkos_tech.mjs manifest
 node skills/perkos-tech/scripts/perkos_tech.mjs x402-policy
 node skills/perkos-tech/scripts/perkos_tech.mjs query "What does Knowledge know about PerkOS Stack?"
+node skills/perkos-tech/scripts/perkos_tech.mjs requests --status open
 ```
 
 Hermes/Python-compatible helper:
@@ -44,6 +46,15 @@ Private/org query:
 KNOWLEDGE_ORG_ID=org_perkos node skills/perkos-tech/scripts/perkos_tech.mjs query "private org question"
 ```
 
+Provider/request actions require an onboarded provider identity and `KNOWLEDGE_INGEST_TOKEN`:
+
+```bash
+KNOWLEDGE_SEND_AGENT_ID=1 KNOWLEDGE_AGENT_ID=perky KNOWLEDGE_ORG_ID=org_perkos \
+node skills/perkos-tech/scripts/perkos_tech.mjs request-claim --request kneed_...
+```
+
+Use `query --create-request-on-miss false` when you want a read-only coverage check.
+
 ## Rules
 
 - Prefer PerkOS APIs over scraping UI pages.
@@ -51,5 +62,7 @@ KNOWLEDGE_ORG_ID=org_perkos node skills/perkos-tech/scripts/perkos_tech.mjs quer
 - Never print tokens, private keys, raw auth headers, or secret env values.
 - Wallet/ERC-8004/org headers are opt-in.
 - `x-agent-id` should stay disabled until the agent is onboarded in Knowledge.
+- Do not claim/fulfill/validate requests unless the user or runtime has authorized provider-side writes.
+- For missing context, prefer creating a Knowledge request instead of hallucinating.
 
 See `references/perkos-api.md` for API details.
