@@ -1,36 +1,41 @@
 #!/usr/bin/env node
-import fs from 'node:fs';
-
 const BASE_URL = (process.env.KNOWLEDGE_BASE_URL || 'https://knowledge.perkos.xyz').replace(/\/$/, '');
 
 function openclawAgentId() {
   if (process.env.KNOWLEDGE_SEND_AGENT_ID !== '1') return null;
-  for (const path of ['/root/.openclaw/openclaw.json', `${process.env.HOME || ''}/.openclaw/openclaw.json`]) {
-    try {
-      const cfg = JSON.parse(fs.readFileSync(path, 'utf8'));
-      return cfg?.models?.providers?.ollama?.headers?.['x-agent-id'] || process.env.KNOWLEDGE_AGENT_ID || null;
-    } catch {}
-  }
   return process.env.KNOWLEDGE_AGENT_ID || null;
+}
+
+function envValue(name) {
+  return process.env[name] || '';
 }
 
 function headers(auth = false) {
   const h = { 'content-type': 'application/json' };
   const agentId = openclawAgentId();
+  const wallet = envValue('KNOWLEDGE_AGENT_WALLET');
+  const erc8004 = envValue('KNOWLEDGE_AGENT_ERC8004');
+  const orgId = envValue('KNOWLEDGE_ORG_ID');
+  const ingestToken = auth ? envValue('KNOWLEDGE_INGEST_TOKEN') : '';
+
   if (agentId) h['x-agent-id'] = agentId;
-  if (process.env.KNOWLEDGE_AGENT_WALLET) h['x-agent-wallet'] = process.env.KNOWLEDGE_AGENT_WALLET;
-  if (process.env.KNOWLEDGE_AGENT_ERC8004) h['x-agent-erc8004'] = process.env.KNOWLEDGE_AGENT_ERC8004;
-  if (process.env.KNOWLEDGE_ORG_ID) h['x-organization-id'] = process.env.KNOWLEDGE_ORG_ID;
-  if (auth && process.env.KNOWLEDGE_INGEST_TOKEN) h.authorization = `Bearer ${process.env.KNOWLEDGE_INGEST_TOKEN}`;
+  if (wallet) h['x-agent-wallet'] = wallet;
+  if (erc8004) h['x-agent-erc8004'] = erc8004;
+  if (orgId) h['x-organization-id'] = orgId;
+  if (ingestToken) h.authorization = `Bearer ${ingestToken}`;
   return h;
 }
 
-async function req(method, path, body, auth = false) {
-  const res = await fetch(`${BASE_URL}${path}`, {
+function requestOptions(method, body, auth) {
+  return {
     method,
     headers: headers(auth),
     body: body ? JSON.stringify(body) : undefined
-  });
+  };
+}
+
+async function req(method, path, body, auth = false) {
+  const res = await fetch(`${BASE_URL}${path}`, requestOptions(method, body, auth));
   const text = await res.text();
   let payload;
   try { payload = text ? JSON.parse(text) : null; } catch { payload = { raw: text }; }
