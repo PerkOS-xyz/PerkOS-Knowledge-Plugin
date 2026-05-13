@@ -61,3 +61,22 @@ Optional/write/provider tools:
 - `perkos_knowledge_request_validate`
 
 OpenClaw users should allow optional tools explicitly, e.g. `tools.allow: ["perkos-tech"]` or specific tool names, and only on trusted provider agents.
+
+## Install and release docs
+
+- Installation: `docs/install.md`
+- Runtime compatibility matrix: `docs/runtime-matrix.md`
+- Release checklist: `docs/release.md`
+
+## Local verification
+
+```bash
+npm ci
+npm run check
+npm run build
+npm run py:check
+npm run smoke
+npm run pack:dry-run
+```
+
+`npm run smoke` only calls public Knowledge endpoints and does not require secrets.

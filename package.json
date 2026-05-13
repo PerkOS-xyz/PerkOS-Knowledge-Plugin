@@ -5,10 +5,21 @@
   "type": "module",
   "license": "MIT",
   "private": false,
+  "bin": {
+    "perkos-tech-mcp": "./dist/mcp/server.js"
+  },
+  "exports": {
+    ".": "./dist/src/client.js",
+    "./openclaw": "./dist/src/index.js",
+    "./mcp": "./dist/mcp/server.js"
+  },
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "check": "tsc --noEmit -p tsconfig.json",
-    "mcp": "node dist/mcp/server.js"
+    "py:check": "python3 -c \"import ast,pathlib; [ast.parse(pathlib.Path(p).read_text()) for p in ['hermes/perkos-tech/tools.py','hermes/perkos-tech/schemas.py','skills/perkos-tech/scripts/perkos_tech.py']]\"",
+    "smoke": "node scripts/smoke.mjs",
+    "mcp": "node dist/mcp/server.js",
+    "pack:dry-run": "npm pack --dry-run"
   },
   "files": [
     "dist/",
@@ -17,7 +28,8 @@
     "hermes/",
     "examples/",
     "README.md",
-    "LICENSE"
+    "LICENSE",
+    "docs/"
   ],
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.21.0",
