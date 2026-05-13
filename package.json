@@ -6,7 +6,7 @@
   "license": "MIT",
   "private": false,
   "bin": {
-    "perkos-tech-mcp": "./dist/mcp/server.js"
+    "perkos-tech-mcp": "dist/mcp/server.js"
   },
   "exports": {
     ".": "./dist/src/client.js",
@@ -40,8 +40,12 @@
     "openclaw": ">=2026.5.7"
   },
   "openclaw": {
-    "extensions": ["./src/index.ts"],
-    "runtimeExtensions": ["./dist/src/index.js"],
+    "extensions": [
+      "./src/index.ts"
+    ],
+    "runtimeExtensions": [
+      "./dist/src/index.js"
+    ],
     "compat": {
       "pluginApi": ">=2026.3.24-beta.2",
       "minGatewayVersion": "2026.3.24-beta.2"
