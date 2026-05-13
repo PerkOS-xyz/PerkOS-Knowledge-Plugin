@@ -1,12 +1,13 @@
 import json
 import os
 import urllib.error
+import urllib.parse
 import urllib.request
 
 BASE_URL = os.environ.get("KNOWLEDGE_BASE_URL", "https://knowledge.perkos.xyz").rstrip("/")
 
 
-def _headers(org_id=None):
+def _headers(org_id=None, auth=False):
     headers = {"content-type": "application/json"}
     if org_id or os.environ.get("KNOWLEDGE_ORG_ID"):
         headers["x-organization-id"] = org_id or os.environ["KNOWLEDGE_ORG_ID"]
@@ -16,12 +17,14 @@ def _headers(org_id=None):
         headers["x-agent-erc8004"] = os.environ["KNOWLEDGE_AGENT_ERC8004"]
     if os.environ.get("KNOWLEDGE_SEND_AGENT_ID") == "1" and os.environ.get("KNOWLEDGE_AGENT_ID"):
         headers["x-agent-id"] = os.environ["KNOWLEDGE_AGENT_ID"]
+    if auth and os.environ.get("KNOWLEDGE_INGEST_TOKEN"):
+        headers["authorization"] = "Bearer " + os.environ["KNOWLEDGE_INGEST_TOKEN"]
     return headers
 
 
-def _request(method, path, body=None, org_id=None):
+def _request(method, path, body=None, org_id=None, auth=False):
     data = None if body is None else json.dumps(body).encode("utf-8")
-    req = urllib.request.Request(BASE_URL + path, data=data, headers=_headers(org_id), method=method)
+    req = urllib.request.Request(BASE_URL + path, data=data, headers=_headers(org_id, auth), method=method)
     try:
         with urllib.request.urlopen(req, timeout=int(os.environ.get("PERKOS_TECH_TIMEOUT", "30"))) as res:
             raw = res.read().decode("utf-8")
@@ -46,10 +49,69 @@ def perkos_x402_policy(args, **kwargs):
 
 
 def perkos_knowledge_query(args, **kwargs):
-    query = (args or {}).get("query", "").strip()
+    args = args or {}
+    query = args.get("query", "").strip()
     if not query:
         return json.dumps({"ok": False, "error": "query_required"})
-    return _request("POST", "/skill/query", {
+    body = {
         "query": query,
-        "limit": (args or {}).get("limit", 5),
-    }, org_id=(args or {}).get("organizationId"))
+        "limit": args.get("limit", 5),
+        "createRequestOnMiss": args.get("createRequestOnMiss"),
+        "desired_output": args.get("desiredOutput"),
+        "missing_topics": args.get("missingTopics"),
+    }
+    return _request("POST", "/skill/query", body, org_id=args.get("organizationId"))
+
+
+def perkos_knowledge_requests_list(args, **kwargs):
+    args = args or {}
+    status = urllib.parse.quote(str(args.get("status", "open")))
+    limit = urllib.parse.quote(str(args.get("limit", 25)))
+    return _request("GET", f"/knowledge/requests?status={status}&limit={limit}")
+
+
+def perkos_knowledge_request_create(args, **kwargs):
+    args = args or {}
+    query = args.get("query", "").strip()
+    if not query:
+        return json.dumps({"ok": False, "error": "query_required"})
+    return _request("POST", "/knowledge/requests", {
+        "query": query,
+        "priority": args.get("priority"),
+        "desired_output": args.get("desiredOutput"),
+        "missing_topics": args.get("missingTopics"),
+        "notes": args.get("notes"),
+        "allow_duplicate": args.get("allowDuplicate"),
+    })
+
+
+def perkos_knowledge_request_claim(args, **kwargs):
+    args = args or {}
+    request_id = args.get("requestId", "").strip()
+    if not request_id:
+        return json.dumps({"ok": False, "error": "request_id_required"})
+    return _request("POST", f"/knowledge/requests/{urllib.parse.quote(request_id)}/claim", {
+        "notes": args.get("notes"),
+    }, auth=True)
+
+
+def perkos_knowledge_request_fulfill(args, **kwargs):
+    args = args or {}
+    request_id = args.get("requestId", "").strip()
+    if not request_id:
+        return json.dumps({"ok": False, "error": "request_id_required"})
+    return _request("POST", f"/knowledge/requests/{urllib.parse.quote(request_id)}/fulfill", {
+        "research_item_ids": args.get("researchItemIds", []),
+        "notes": args.get("notes"),
+    }, auth=True)
+
+
+def perkos_knowledge_request_validate(args, **kwargs):
+    args = args or {}
+    request_id = args.get("requestId", "").strip()
+    if not request_id:
+        return json.dumps({"ok": False, "error": "request_id_required"})
+    return _request("POST", f"/knowledge/requests/{urllib.parse.quote(request_id)}/validate", {
+        "accepted": args.get("accepted", True),
+        "validation_notes": args.get("validationNotes") or args.get("notes"),
+    }, auth=True)
