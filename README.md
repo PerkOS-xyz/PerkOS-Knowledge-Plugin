@@ -27,6 +27,24 @@ This repo provides:
 - No secrets, private keys, or real wallets belong in this repo.
 - Write/payment/provider tools are optional/approval-sensitive in OpenClaw and require explicit allowlisting plus `KNOWLEDGE_INGEST_TOKEN`.
 
+## Runtime prerequisites
+
+PerkOS Knowledge is served over standard public HTTPS at `https://knowledge.perkos.xyz`. Agents do not need a PerkOS-specific certificate, but their runtime must include a normal public CA certificate bundle so HTTPS/TLS verification can trust the certificate chain.
+
+Most full OS/runtime environments already include this. Minimal container images may not, especially Python images based on Debian/Ubuntu slim or Alpine.
+
+Install the standard CA bundle when needed:
+
+```bash
+# Debian/Ubuntu
+apt-get update && apt-get install -y ca-certificates
+
+# Alpine
+apk add --no-cache ca-certificates
+```
+
+If the Python helper fails with `CERTIFICATE_VERIFY_FAILED`, install/update `ca-certificates` in the container or configure Python to use an equivalent CA bundle such as `certifi`.
+
 ## Layout
 
 ```text

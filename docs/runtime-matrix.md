@@ -2,10 +2,10 @@
 
 | Runtime | Surface | Status | Notes |
 | --- | --- | --- | --- |
-| OpenClaw | Native plugin via `openclaw.plugin.json` + `src/index.ts` | Supported | Read tools default; write/provider tools optional allowlist. |
-| Hermes | Python wrapper in `hermes/perkos-tech/` | Supported | Uses standard library HTTP and Hermes tool schemas. |
-| MCP clients | `dist/mcp/server.js` stdio server | Supported | Same conceptual tools with MCP-friendly names. |
-| AgentSkills-compatible runtimes | `skills/perkos-tech/` | Supported | Human/agent instructions plus Node/Python helper scripts. |
+| OpenClaw | Native plugin via `openclaw.plugin.json` + `src/index.ts` | Supported | Read tools default; write/provider tools optional allowlist. Requires normal HTTPS CA trust from host/container. |
+| Hermes | Python wrapper in `hermes/perkos-tech/` | Supported | Uses standard library HTTP and Hermes tool schemas. Minimal containers must include `ca-certificates` or equivalent. |
+| MCP clients | `dist/mcp/server.js` stdio server | Supported | Same conceptual tools with MCP-friendly names. Requires standard HTTPS CA trust. |
+| AgentSkills-compatible runtimes | `skills/perkos-tech/` | Supported | Human/agent instructions plus Node/Python helper scripts. Python helper needs a configured CA bundle. |
 
 ## Capability matrix
 
@@ -19,6 +19,24 @@
 | Claim request | `perkos_knowledge_request_claim` | `perkos_knowledge_request_claim` | `knowledge_request_claim` | `request-claim` |
 | Fulfill request | `perkos_knowledge_request_fulfill` | `perkos_knowledge_request_fulfill` | `knowledge_request_fulfill` | `request-fulfill` |
 | Validate request | `perkos_knowledge_request_validate` | `perkos_knowledge_request_validate` | `knowledge_request_validate` | `request-validate` |
+
+## HTTPS/TLS certificate trust
+
+PerkOS Knowledge uses a normal public TLS certificate. Agents do not install a PerkOS-specific certificate. They only need the runtime's standard trusted CA bundle so HTTPS verification can validate `knowledge.perkos.xyz`.
+
+Minimal container images can omit that bundle. Add it when building agent images:
+
+```dockerfile
+# Debian/Ubuntu
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends ca-certificates \
+  && rm -rf /var/lib/apt/lists/*
+```
+
+```dockerfile
+# Alpine
+RUN apk add --no-cache ca-certificates
+```
 
 ## Safety model
 
