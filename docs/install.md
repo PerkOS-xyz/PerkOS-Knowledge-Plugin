@@ -7,6 +7,22 @@ PerkOS Tech Plugin is distributed as one package with four compatibility surface
 - Hermes Python wrapper
 - AgentSkills-compatible skill folder
 
+## Prerequisites
+
+PerkOS Knowledge uses standard public HTTPS. No PerkOS-specific certificate is required, but agents must run in an environment with a normal public CA certificate bundle.
+
+Full operating systems and many Node runtimes already include trusted CA certificates. Minimal containers sometimes do not. If HTTPS calls fail with certificate errors such as Python `CERTIFICATE_VERIFY_FAILED`, install the standard CA bundle:
+
+```bash
+# Debian/Ubuntu containers
+apt-get update && apt-get install -y ca-certificates
+
+# Alpine containers
+apk add --no-cache ca-certificates
+```
+
+For Python-only deployments, an equivalent configured CA bundle such as `certifi` is also acceptable.
+
 ## Environment
 
 Common environment variables:
@@ -81,7 +97,7 @@ Hermes/other MCP clients can use the example at `examples/hermes.config.yaml`.
 
 Copy or mount `hermes/perkos-tech/` into the Hermes plugin directory and expose the tools listed in `plugin.yaml`.
 
-The wrapper uses only Python standard library HTTP calls and the same environment variables as the Node client.
+The wrapper uses only Python standard library HTTP calls and the same environment variables as the Node client. Make sure the host/container has a trusted CA bundle installed; otherwise Python HTTPS calls may fail with `CERTIFICATE_VERIFY_FAILED`.
 
 ## AgentSkill folder
 
