@@ -39,7 +39,14 @@ def headers(auth=False):
     return h
 
 
+def clean_body(body):
+    if body is None:
+        return None
+    return {key: value for key, value in body.items() if value is not None}
+
+
 def request(method, path, body=None, auth=False):
+    body = clean_body(body)
     data = None if body is None else json.dumps(body).encode("utf-8")
     req = urllib.request.Request(BASE_URL + path, data=data, headers=headers(auth), method=method)
     try:
