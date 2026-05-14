@@ -115,3 +115,18 @@ def perkos_knowledge_request_validate(args, **kwargs):
         "accepted": args.get("accepted", True),
         "validation_notes": args.get("validationNotes") or args.get("notes"),
     }, auth=True)
+
+
+def perkos_knowledge_submit_research(args, **kwargs):
+    args = args or {}
+    items = args.get("items") or []
+    if not isinstance(items, list) or not items:
+        return json.dumps({"ok": False, "error": "items_required"})
+    body = {
+        "source": args.get("source"),
+        "visibility": args.get("visibility"),
+        "organization_id": args.get("organizationId"),
+        "contribution_type": args.get("contributionType"),
+        "items": items,
+    }
+    return _request("POST", "/api/ingest/research", body, org_id=args.get("organizationId"), auth=True)

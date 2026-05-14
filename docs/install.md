@@ -73,7 +73,8 @@ Recommended provider allowlist:
       "perkos_knowledge_request_create",
       "perkos_knowledge_request_claim",
       "perkos_knowledge_request_fulfill",
-      "perkos_knowledge_request_validate"
+      "perkos_knowledge_request_validate",
+      "perkos_knowledge_submit_research"
     ]
   }
 }

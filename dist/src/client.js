@@ -73,6 +73,18 @@ export class PerkOsClient {
             validation_notes: params.validationNotes || params.notes
         }, { auth: true });
     }
+    async submitResearch(params) {
+        return this.request('POST', '/api/ingest/research', {
+            source: params.source,
+            visibility: params.visibility,
+            organization_id: params.organizationId,
+            contribution_type: params.contributionType,
+            items: params.items.map((item) => ({
+                ...item,
+                contribution_type: item.contributionType || params.contributionType
+            }))
+        }, { organizationId: params.organizationId, auth: true });
+    }
     async request(method, path, body, extra) {
         const res = await fetch(`${this.baseUrl}${path}`, {
             method,

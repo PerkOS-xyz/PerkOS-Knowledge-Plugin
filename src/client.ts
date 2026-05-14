@@ -46,6 +46,29 @@ export type KnowledgeRequestValidateParams = KnowledgeRequestActionParams & {
   validationNotes?: string;
 };
 
+export type KnowledgeContributionItem = {
+  path: string;
+  title?: string;
+  summary?: string;
+  content?: string;
+  track?: string;
+  chains?: string[];
+  agents?: string[];
+  confidence?: string;
+  visibility?: 'private' | 'public_candidate' | 'public' | string;
+  contributionType?: string;
+  evidence?: unknown[];
+  metadata?: Record<string, unknown>;
+};
+
+export type KnowledgeSubmitResearchParams = {
+  source?: string;
+  visibility?: 'private' | 'public_candidate' | 'public' | string;
+  organizationId?: string;
+  contributionType?: string;
+  items: KnowledgeContributionItem[];
+};
+
 export class PerkOsClient {
   private readonly baseUrl: string;
   private readonly options: PerkOsClientOptions;
@@ -127,6 +150,19 @@ export class PerkOsClient {
       accepted: params.accepted !== false,
       validation_notes: params.validationNotes || params.notes
     }, { auth: true });
+  }
+
+  async submitResearch(params: KnowledgeSubmitResearchParams): Promise<unknown> {
+    return this.request('POST', '/api/ingest/research', {
+      source: params.source,
+      visibility: params.visibility,
+      organization_id: params.organizationId,
+      contribution_type: params.contributionType,
+      items: params.items.map((item) => ({
+        ...item,
+        contribution_type: item.contributionType || params.contributionType
+      }))
+    }, { organizationId: params.organizationId, auth: true });
   }
 
   private async request(method: string, path: string, body?: unknown, extra?: { organizationId?: string; auth?: boolean }): Promise<unknown> {

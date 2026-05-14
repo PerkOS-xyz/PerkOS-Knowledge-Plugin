@@ -164,5 +164,55 @@ export default definePluginEntry({
         }));
       }
     }, { optional: true });
+
+    api.registerTool({
+      name: 'perkos_knowledge_submit_research',
+      label: 'Submit PerkOS Knowledge research',
+      description: 'Submit sanitized research/provider contributions to PerkOS Knowledge. Requires KNOWLEDGE_INGEST_TOKEN and onboarded provider identity.',
+      parameters: Type.Object({
+        source: Type.Optional(Type.String({ description: 'Provider/source name for provenance.' })),
+        visibility: Type.Optional(Type.String({ description: 'private, public_candidate, or public.', default: 'private' })),
+        organizationId: Type.Optional(Type.String({ description: 'Organization scope for private/provider knowledge.' })),
+        contributionType: Type.Optional(Type.String({ description: 'research, market_signal, technical_note, news_digest, or custom.' })),
+        items: Type.Array(Type.Object({
+          path: Type.String({ description: 'Stable provider path/id for idempotent upserts.' }),
+          title: Type.Optional(Type.String()),
+          summary: Type.Optional(Type.String()),
+          content: Type.Optional(Type.String()),
+          track: Type.Optional(Type.String()),
+          chains: Type.Optional(Type.Array(Type.String())),
+          agents: Type.Optional(Type.Array(Type.String())),
+          confidence: Type.Optional(Type.String()),
+          visibility: Type.Optional(Type.String()),
+          contributionType: Type.Optional(Type.String()),
+          evidence: Type.Optional(Type.Array(Type.Any())),
+          metadata: Type.Optional(Type.Record(Type.String(), Type.Any()))
+        }), { minItems: 1 })
+      }),
+      async execute(_id, params) {
+        const p = record(params);
+        const items = Array.isArray(p.items) ? p.items.map((item) => record(item)) : [];
+        return text(await client().submitResearch({
+          source: typeof p.source === 'string' ? p.source : undefined,
+          visibility: typeof p.visibility === 'string' ? p.visibility : undefined,
+          organizationId: typeof p.organizationId === 'string' ? p.organizationId : undefined,
+          contributionType: typeof p.contributionType === 'string' ? p.contributionType : undefined,
+          items: items.map((item) => ({
+            path: String(item.path || ''),
+            title: typeof item.title === 'string' ? item.title : undefined,
+            summary: typeof item.summary === 'string' ? item.summary : undefined,
+            content: typeof item.content === 'string' ? item.content : undefined,
+            track: typeof item.track === 'string' ? item.track : undefined,
+            chains: stringArray(item.chains),
+            agents: stringArray(item.agents),
+            confidence: typeof item.confidence === 'string' ? item.confidence : undefined,
+            visibility: typeof item.visibility === 'string' ? item.visibility : undefined,
+            contributionType: typeof item.contributionType === 'string' ? item.contributionType : undefined,
+            evidence: Array.isArray(item.evidence) ? item.evidence : undefined,
+            metadata: item.metadata && typeof item.metadata === 'object' ? item.metadata as Record<string, unknown> : undefined
+          }))
+        }));
+      }
+    }, { optional: true });
   }
 });

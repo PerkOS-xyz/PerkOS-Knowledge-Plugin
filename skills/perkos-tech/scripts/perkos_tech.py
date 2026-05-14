@@ -90,6 +90,15 @@ def main():
     validate.add_argument("request")
     validate.add_argument("--accepted", default="true")
     validate.add_argument("--notes", default=None)
+    submit = sub.add_parser("submit-research")
+    submit.add_argument("--source", default=None)
+    submit.add_argument("--visibility", default="private")
+    submit.add_argument("--organization-id", default=os.environ.get("KNOWLEDGE_ORG_ID"))
+    submit.add_argument("--contribution-type", default="research")
+    submit.add_argument("--path", required=True)
+    submit.add_argument("--title", default=None)
+    submit.add_argument("--summary", default=None)
+    submit.add_argument("--content", default=None)
     args = parser.parse_args()
 
     if args.cmd == "manifest":
@@ -108,8 +117,22 @@ def main():
     elif args.cmd == "request-fulfill":
         item_ids = [x.strip() for x in args.item_ids.split(",") if x.strip()]
         status, payload = request("POST", f"/knowledge/requests/{urllib.parse.quote(args.request)}/fulfill", {"research_item_ids": item_ids, "notes": args.notes}, auth=True)
-    else:
+    elif args.cmd == "request-validate":
         status, payload = request("POST", f"/knowledge/requests/{urllib.parse.quote(args.request)}/validate", {"accepted": args.accepted.lower() != "false", "validation_notes": args.notes}, auth=True)
+    else:
+        status, payload = request("POST", "/api/ingest/research", {
+            "source": args.source,
+            "visibility": args.visibility,
+            "organization_id": args.organization_id,
+            "contribution_type": args.contribution_type,
+            "items": [{
+                "path": args.path,
+                "title": args.title or args.path,
+                "summary": args.summary,
+                "content": args.content,
+                "contribution_type": args.contribution_type,
+            }]
+        }, auth=True)
 
     print(json.dumps(payload, indent=2, ensure_ascii=False))
     return 0 if 200 <= status < 300 else 1

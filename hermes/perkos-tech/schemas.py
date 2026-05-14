@@ -96,3 +96,39 @@ PERKOS_KNOWLEDGE_REQUEST_VALIDATE = {
         "required": ["requestId"],
     },
 }
+
+PERKOS_KNOWLEDGE_SUBMIT_RESEARCH = {
+    "name": "perkos_knowledge_submit_research",
+    "description": "Submit sanitized research/provider contributions to PerkOS Knowledge as an onboarded provider agent.",
+    "parameters": {
+        "type": "object",
+        "properties": {
+            "source": {"type": "string"},
+            "visibility": {"type": "string", "description": "private, public_candidate, or public."},
+            "organizationId": {"type": "string"},
+            "contributionType": {"type": "string"},
+            "items": {
+                "type": "array",
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "path": {"type": "string"},
+                        "title": {"type": "string"},
+                        "summary": {"type": "string"},
+                        "content": {"type": "string"},
+                        "track": {"type": "string"},
+                        "chains": {"type": "array", "items": {"type": "string"}},
+                        "agents": {"type": "array", "items": {"type": "string"}},
+                        "confidence": {"type": "string"},
+                        "visibility": {"type": "string"},
+                        "contributionType": {"type": "string"},
+                        "evidence": {"type": "array", "items": {"type": "object"}},
+                        "metadata": {"type": "object"},
+                    },
+                    "required": ["path"],
+                },
+            },
+        },
+        "required": ["items"],
+    },
+}
