@@ -54,7 +54,7 @@ function take(args, name, fallback = undefined) {
 
 const [cmd, ...rest0] = process.argv.slice(2);
 const rest = [...rest0];
-const usage = 'Usage: perkos_tech.mjs manifest|x402-policy|query|requests|request-create|request-claim|request-fulfill|request-validate ...';
+const usage = 'Usage: perkos_tech.mjs manifest|x402-policy|query|requests|request-create|request-claim|request-fulfill|request-validate|submit-research ...';
 if (!cmd) { console.error(usage); process.exit(2); }
 
 if (cmd === 'manifest') await req('GET', '/skill/manifest');
@@ -89,6 +89,26 @@ else if (cmd === 'query') {
   const requestId = take(rest, 'request') || rest[0];
   if (!requestId) { console.error('request id required'); process.exit(2); }
   await req('POST', `/knowledge/requests/${encodeURIComponent(requestId)}/validate`, { accepted: take(rest, 'accepted', 'true') !== 'false', validation_notes: take(rest, 'notes', undefined) }, true);
+} else if (cmd === 'submit-research') {
+  const path = take(rest, 'path', undefined);
+  if (!path) { console.error('--path required'); process.exit(2); }
+  const source = take(rest, 'source', undefined);
+  const visibility = take(rest, 'visibility', 'private');
+  const organizationId = take(rest, 'organization-id', process.env.KNOWLEDGE_ORG_ID || undefined);
+  const contributionType = take(rest, 'contribution-type', 'research');
+  await req('POST', '/api/ingest/research', {
+    source,
+    visibility,
+    organization_id: organizationId,
+    contribution_type: contributionType,
+    items: [{
+      path,
+      title: take(rest, 'title', path),
+      summary: take(rest, 'summary', undefined),
+      content: take(rest, 'content', undefined),
+      contribution_type: contributionType
+    }]
+  }, true);
 } else {
   console.error(usage);
   process.exit(2);

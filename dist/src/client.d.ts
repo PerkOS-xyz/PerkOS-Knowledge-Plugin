@@ -39,6 +39,27 @@ export type KnowledgeRequestValidateParams = KnowledgeRequestActionParams & {
     accepted?: boolean;
     validationNotes?: string;
 };
+export type KnowledgeContributionItem = {
+    path: string;
+    title?: string;
+    summary?: string;
+    content?: string;
+    track?: string;
+    chains?: string[];
+    agents?: string[];
+    confidence?: string;
+    visibility?: 'private' | 'public_candidate' | 'public' | string;
+    contributionType?: string;
+    evidence?: unknown[];
+    metadata?: Record<string, unknown>;
+};
+export type KnowledgeSubmitResearchParams = {
+    source?: string;
+    visibility?: 'private' | 'public_candidate' | 'public' | string;
+    organizationId?: string;
+    contributionType?: string;
+    items: KnowledgeContributionItem[];
+};
 export declare class PerkOsClient {
     private readonly baseUrl;
     private readonly options;
@@ -52,5 +73,6 @@ export declare class PerkOsClient {
     claimRequest(params: KnowledgeRequestActionParams): Promise<unknown>;
     fulfillRequest(params: KnowledgeRequestFulfillParams): Promise<unknown>;
     validateRequest(params: KnowledgeRequestValidateParams): Promise<unknown>;
+    submitResearch(params: KnowledgeSubmitResearchParams): Promise<unknown>;
     private request;
 }

@@ -67,4 +67,27 @@ server.tool('knowledge_request_validate', 'Validate or reject a fulfilled PerkOS
   content: [{ type: 'text', text: JSON.stringify(await client.validateRequest(args), null, 2) }]
 }));
 
+server.tool('knowledge_submit_research', 'Submit sanitized research/provider contributions to PerkOS Knowledge.', {
+  source: z.string().optional(),
+  visibility: z.string().optional(),
+  organizationId: z.string().optional(),
+  contributionType: z.string().optional(),
+  items: z.array(z.object({
+    path: z.string(),
+    title: z.string().optional(),
+    summary: z.string().optional(),
+    content: z.string().optional(),
+    track: z.string().optional(),
+    chains: z.array(z.string()).optional(),
+    agents: z.array(z.string()).optional(),
+    confidence: z.string().optional(),
+    visibility: z.string().optional(),
+    contributionType: z.string().optional(),
+    evidence: z.array(z.unknown()).optional(),
+    metadata: z.record(z.string(), z.unknown()).optional()
+  }))
+}, async (args) => ({
+  content: [{ type: 'text', text: JSON.stringify(await client.submitResearch(args), null, 2) }]
+}));
+
 await server.connect(new StdioServerTransport());

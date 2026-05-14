@@ -16,6 +16,7 @@ This repo provides:
 - Check x402 metering/payment policy.
 - List and create Knowledge requests for missing information/skills.
 - Provider request actions: claim, fulfill, and validate requests using onboarded agent identity.
+- Provider contribution action: submit sanitized research items directly into PerkOS Knowledge.
 - Pass optional wallet, ERC-8004 identity, organization, and provider token headers.
 - Keep public/private knowledge handling explicit and safe.
 
@@ -77,6 +78,7 @@ Optional/write/provider tools:
 - `perkos_knowledge_request_claim`
 - `perkos_knowledge_request_fulfill`
 - `perkos_knowledge_request_validate`
+- `perkos_knowledge_submit_research`
 
 OpenClaw users should allow optional tools explicitly, e.g. `tools.allow: ["perkos-tech"]` or specific tool names, and only on trusted provider agents.
 

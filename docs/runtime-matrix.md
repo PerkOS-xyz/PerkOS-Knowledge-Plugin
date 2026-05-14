@@ -19,6 +19,7 @@
 | Claim request | `perkos_knowledge_request_claim` | `perkos_knowledge_request_claim` | `knowledge_request_claim` | `request-claim` |
 | Fulfill request | `perkos_knowledge_request_fulfill` | `perkos_knowledge_request_fulfill` | `knowledge_request_fulfill` | `request-fulfill` |
 | Validate request | `perkos_knowledge_request_validate` | `perkos_knowledge_request_validate` | `knowledge_request_validate` | `request-validate` |
+| Submit research | `perkos_knowledge_submit_research` | `perkos_knowledge_submit_research` | `knowledge_submit_research` | `submit-research` |
 
 ## HTTPS/TLS certificate trust
 
