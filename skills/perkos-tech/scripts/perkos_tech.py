@@ -62,6 +62,22 @@ def request(method, path, body=None, auth=False):
         return e.code, payload
 
 
+def parse_evidence(args):
+    evidence = []
+    if args.evidence:
+        try:
+            parsed = json.loads(args.evidence)
+        except Exception as exc:
+            raise SystemExit(f"--evidence must be a JSON array: {exc}")
+        if not isinstance(parsed, list):
+            raise SystemExit("--evidence must be a JSON array")
+        evidence.extend(parsed)
+    evidence.extend({"type": "url", "url": url, "verified": True} for url in args.evidence_url)
+    evidence.extend({"type": "file", "path": path, "verified": True} for path in args.evidence_path)
+    evidence.extend({"type": "note", "note": note} for note in args.evidence_note)
+    return evidence or None
+
+
 def main():
     parser = argparse.ArgumentParser(description="Use PerkOS technology APIs from OpenClaw/Hermes agents.")
     sub = parser.add_subparsers(dest="cmd", required=True)
@@ -102,6 +118,10 @@ def main():
     submit.add_argument("--title", default=None)
     submit.add_argument("--summary", default=None)
     submit.add_argument("--content", default=None)
+    submit.add_argument("--evidence", default=None, help="JSON array of evidence objects")
+    submit.add_argument("--evidence-url", action="append", default=[], help="Attach verified URL evidence; can be repeated")
+    submit.add_argument("--evidence-path", action="append", default=[], help="Attach verified file/path evidence; can be repeated")
+    submit.add_argument("--evidence-note", action="append", default=[], help="Attach note evidence; can be repeated")
     args = parser.parse_args()
 
     if args.cmd == "manifest":
@@ -143,6 +163,7 @@ def main():
                 "summary": args.summary,
                 "content": args.content,
                 "contribution_type": args.contribution_type,
+                "evidence": parse_evidence(args),
             }]
         }, auth=True)
 
