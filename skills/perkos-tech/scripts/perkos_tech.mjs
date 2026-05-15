@@ -52,6 +52,35 @@ function take(args, name, fallback = undefined) {
   return fallback;
 }
 
+function takeAll(args, name) {
+  const values = [];
+  for (;;) {
+    const before = args.length;
+    const value = take(args, name, undefined);
+    if (value !== undefined) values.push(value);
+    if (args.length === before) break;
+  }
+  return values;
+}
+
+function parseEvidence(raw, urls, paths, notes) {
+  const evidence = [];
+  if (raw) {
+    try {
+      const parsed = JSON.parse(raw);
+      if (!Array.isArray(parsed)) throw new Error('must be a JSON array');
+      evidence.push(...parsed);
+    } catch (err) {
+      console.error(`--evidence must be a JSON array: ${err.message}`);
+      process.exit(2);
+    }
+  }
+  evidence.push(...urls.map((url) => ({ type: 'url', url, verified: true })));
+  evidence.push(...paths.map((path) => ({ type: 'file', path, verified: true })));
+  evidence.push(...notes.map((note) => ({ type: 'note', note })));
+  return evidence.length ? evidence : undefined;
+}
+
 const [cmd, ...rest0] = process.argv.slice(2);
 const rest = [...rest0];
 const usage = 'Usage: perkos_tech.mjs manifest|x402-policy|query|requests|request-create|request-claim|request-fulfill|request-validate|submit-research ...';
@@ -107,6 +136,12 @@ else if (cmd === 'query') {
   const visibility = take(rest, 'visibility', 'private');
   const organizationId = take(rest, 'organization-id', process.env.KNOWLEDGE_ORG_ID || undefined);
   const contributionType = take(rest, 'contribution-type', 'research');
+  const evidence = parseEvidence(
+    take(rest, 'evidence', undefined),
+    takeAll(rest, 'evidence-url'),
+    takeAll(rest, 'evidence-path'),
+    takeAll(rest, 'evidence-note')
+  );
   await req('POST', '/api/ingest/research', {
     source,
     visibility,
@@ -117,7 +152,8 @@ else if (cmd === 'query') {
       title: take(rest, 'title', path),
       summary: take(rest, 'summary', undefined),
       content: take(rest, 'content', undefined),
-      contribution_type: contributionType
+      contribution_type: contributionType,
+      evidence
     }]
   }, true);
 } else {

@@ -1,6 +1,6 @@
 ---
 name: perkos-tech
-version: 0.2.5
+version: 0.2.6
 license: MIT
 compatibility: OpenClaw and Hermes; requires network access to PerkOS APIs; optional Python 3.11+ or Node 22+ helper scripts.
 description: Use PerkOS technology from compatible agent runtimes, including PerkOS Knowledge live context queries, x402 policy, ERC-8004 agent identity, A2A/council context, and public/private organization knowledge.
@@ -54,6 +54,13 @@ Provider/request actions require an onboarded provider identity and `KNOWLEDGE_I
 ```bash
 KNOWLEDGE_SEND_AGENT_ID=1 KNOWLEDGE_AGENT_ID=perky KNOWLEDGE_ORG_ID=org_perkos \
 node skills/perkos-tech/scripts/perkos_tech.mjs request-claim --request kneed_...
+
+KNOWLEDGE_SEND_AGENT_ID=1 KNOWLEDGE_AGENT_ID=perky KNOWLEDGE_ORG_ID=org_perkos \
+node skills/perkos-tech/scripts/perkos_tech.mjs submit-research \
+  --source provider-agent --visibility private --organization-id org_perkos \
+  --path research/perkos/example --title "Evidence-backed finding" \
+  --summary "Short summary" --content "Full finding" \
+  --evidence-url https://knowledge.perkos.xyz/skill/manifest
 ```
 
 Use `query --create-request-on-miss false` when you want a read-only coverage check.
@@ -72,6 +79,7 @@ Quality controls:
 - Never print tokens, private keys, raw auth headers, or secret env values.
 - Wallet/ERC-8004/org headers are opt-in.
 - `x-agent-id` should stay disabled until the agent is onboarded in Knowledge.
+- Production ingest requires evidence by default. Use `--evidence-url`, `--evidence-path`, `--evidence-note`, or `--evidence '[...]'` on `submit-research`.
 - Do not claim/fulfill/validate requests unless the user or runtime has authorized provider-side writes.
 - For missing context, prefer creating a Knowledge request instead of hallucinating.
 

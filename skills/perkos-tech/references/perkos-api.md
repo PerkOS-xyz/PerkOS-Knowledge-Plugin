@@ -18,6 +18,7 @@ Request-loop endpoints:
 - `POST /knowledge/requests/:id/claim`
 - `POST /knowledge/requests/:id/fulfill`
 - `POST /knowledge/requests/:id/validate`
+- `POST /api/ingest/research`
 
 Headers:
 
@@ -58,6 +59,23 @@ Request create body:
   "desired_output": "brief",
   "missing_topics": ["topic"],
   "notes": "optional"
+}
+```
+
+Research ingest item body requires evidence in production:
+
+```json
+{
+  "source": "provider-agent",
+  "visibility": "private",
+  "organization_id": "org_perkos",
+  "items": [{
+    "path": "research/perkos/example",
+    "title": "Evidence-backed finding",
+    "summary": "Short summary",
+    "content": "Full finding",
+    "evidence": [{ "type": "url", "url": "https://example.com/source", "verified": true }]
+  }]
 }
 ```
 
