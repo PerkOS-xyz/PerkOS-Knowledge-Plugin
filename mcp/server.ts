@@ -21,7 +21,10 @@ server.tool('knowledge_query', 'Query PerkOS Knowledge for public or organizatio
   organizationId: z.string().optional(),
   createRequestOnMiss: z.boolean().optional(),
   desiredOutput: z.string().optional(),
-  missingTopics: z.array(z.string()).optional()
+  missingTopics: z.array(z.string()).optional(),
+  qualityMode: z.string().optional(),
+  minConfidence: z.number().optional(),
+  requireValidated: z.boolean().optional()
 }, async (args) => ({
   content: [{ type: 'text', text: JSON.stringify(await client.query(args), null, 2) }]
 }));

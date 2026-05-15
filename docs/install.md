@@ -38,6 +38,9 @@ KNOWLEDGE_AGENT_WALLET=0x...
 KNOWLEDGE_AGENT_ERC8004=...
 # Provider write actions only:
 KNOWLEDGE_INGEST_TOKEN=...
+# Optional query quality defaults for agents:
+KNOWLEDGE_QUALITY_MODE=enterprise
+KNOWLEDGE_MIN_CONFIDENCE=45
 ```
 
 Do not commit real tokens, wallets, keys, or org-private values.
@@ -81,6 +84,8 @@ Recommended provider allowlist:
 ```
 
 Provider actions require `KNOWLEDGE_INGEST_TOKEN` plus an onboarded agent identity.
+
+For paid/high-stakes consumers, configure calls with `qualityMode=validated_only`, `requireValidated=true`, or a higher `minConfidence` threshold. Agents should surface `confidencePercent`, `trustTier`, and `validationStatus` when summarizing Knowledge results.
 
 ## MCP
 

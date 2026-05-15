@@ -35,9 +35,19 @@ Query body:
   "limit": 5,
   "createRequestOnMiss": true,
   "desired_output": "brief",
-  "missing_topics": ["topic"]
+  "missing_topics": ["topic"],
+  "qualityMode": "enterprise",
+  "minConfidence": 45,
+  "requireValidated": false
 }
 ```
+
+Enterprise quality fields in query responses:
+
+- `quality.mode`, `quality.minConfidence`, `quality.requireValidated`, `quality.warning`
+- Per item: `validationStatus`, `confidencePercent`, `trustTier`, `qualityReasons`
+
+Use `qualityMode=validated_only` or `requireValidated=true` for paid/high-stakes answers. If returned items are `pending`, `low`, or `untrusted`, agents should disclose that uncertainty.
 
 Request create body:
 

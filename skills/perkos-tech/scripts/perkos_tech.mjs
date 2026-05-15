@@ -63,9 +63,20 @@ else if (cmd === 'query') {
   const limit = Number(take(rest, 'limit', process.env.KNOWLEDGE_LIMIT || 5));
   const create = take(rest, 'create-request-on-miss', undefined);
   const desired = take(rest, 'desired-output', undefined);
+  const qualityMode = take(rest, 'quality-mode', process.env.KNOWLEDGE_QUALITY_MODE || undefined);
+  const minConfidenceRaw = take(rest, 'min-confidence', process.env.KNOWLEDGE_MIN_CONFIDENCE || undefined);
+  const requireValidatedRaw = take(rest, 'require-validated', undefined);
   const query = rest.join(' ').trim();
   if (!query) { console.error('query required'); process.exit(2); }
-  await req('POST', '/skill/query', { query, limit, createRequestOnMiss: create === undefined ? undefined : create !== 'false', desired_output: desired });
+  await req('POST', '/skill/query', {
+    query,
+    limit,
+    createRequestOnMiss: create === undefined ? undefined : create !== 'false',
+    desired_output: desired,
+    qualityMode,
+    minConfidence: minConfidenceRaw === undefined ? undefined : Number(minConfidenceRaw),
+    requireValidated: requireValidatedRaw === undefined ? undefined : requireValidatedRaw !== 'false'
+  });
 } else if (cmd === 'requests') {
   const status = encodeURIComponent(take(rest, 'status', 'open'));
   const limit = encodeURIComponent(take(rest, 'limit', '25'));

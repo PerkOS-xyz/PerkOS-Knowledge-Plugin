@@ -15,6 +15,9 @@ export type KnowledgeQueryParams = {
   createRequestOnMiss?: boolean;
   desiredOutput?: string;
   missingTopics?: string[];
+  qualityMode?: 'enterprise' | 'validated_only' | string;
+  minConfidence?: number;
+  requireValidated?: boolean;
 };
 
 export type KnowledgeRequestCreateParams = {
@@ -110,7 +113,10 @@ export class PerkOsClient {
       limit: params.limit ?? 5,
       createRequestOnMiss: params.createRequestOnMiss,
       desired_output: params.desiredOutput,
-      missing_topics: params.missingTopics
+      missing_topics: params.missingTopics,
+      qualityMode: params.qualityMode,
+      minConfidence: params.minConfidence,
+      requireValidated: params.requireValidated
     }, { organizationId: params.organizationId });
   }
 

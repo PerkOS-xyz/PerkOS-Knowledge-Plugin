@@ -49,7 +49,10 @@ export default definePluginEntry({
                 organizationId: Type.Optional(Type.String({ description: 'Optional organization scope for private knowledge.' })),
                 createRequestOnMiss: Type.Optional(Type.Boolean({ description: 'Create a Knowledge request when coverage is insufficient.', default: true })),
                 desiredOutput: Type.Optional(Type.String({ description: 'Desired output type for auto-created request, e.g. brief, report, skill.' })),
-                missingTopics: Type.Optional(Type.Array(Type.String(), { description: 'Known missing topics for request creation.' }))
+                missingTopics: Type.Optional(Type.Array(Type.String(), { description: 'Known missing topics for request creation.' })),
+                qualityMode: Type.Optional(Type.String({ description: 'Quality policy: enterprise (default) or validated_only.' })),
+                minConfidence: Type.Optional(Type.Number({ description: 'Minimum confidencePercent 0-100. Enterprise default on server is 45.' })),
+                requireValidated: Type.Optional(Type.Boolean({ description: 'Only return independently validated Knowledge items.' }))
             }),
             async execute(_id, params) {
                 const p = record(params);
@@ -59,7 +62,10 @@ export default definePluginEntry({
                     organizationId: typeof p.organizationId === 'string' ? p.organizationId : undefined,
                     createRequestOnMiss: typeof p.createRequestOnMiss === 'boolean' ? p.createRequestOnMiss : undefined,
                     desiredOutput: typeof p.desiredOutput === 'string' ? p.desiredOutput : undefined,
-                    missingTopics: stringArray(p.missingTopics)
+                    missingTopics: stringArray(p.missingTopics),
+                    qualityMode: typeof p.qualityMode === 'string' ? p.qualityMode : undefined,
+                    minConfidence: typeof p.minConfidence === 'number' ? p.minConfidence : undefined,
+                    requireValidated: typeof p.requireValidated === 'boolean' ? p.requireValidated : undefined
                 }));
             }
         });

@@ -82,6 +82,16 @@ Optional/write/provider tools:
 
 OpenClaw users should allow optional tools explicitly, e.g. `tools.allow: ["perkos-tech"]` or specific tool names, and only on trusted provider agents.
 
+## Enterprise Knowledge quality
+
+`perkos_knowledge_query` supports the production quality controls exposed by `knowledge.perkos.xyz`:
+
+- `qualityMode`: `enterprise` (default) or `validated_only`
+- `minConfidence`: minimum `confidencePercent` from 0-100
+- `requireValidated`: only return independently validated items
+
+Responses include `quality` metadata plus per-item `validationStatus`, `confidencePercent`, `trustTier`, and `qualityReasons`. Agents should disclose low/pending/untrusted context instead of treating it as final fact.
+
 ## Install and release docs
 
 - Installation: `docs/install.md`

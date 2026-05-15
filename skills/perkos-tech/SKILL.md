@@ -23,6 +23,7 @@ Use this skill when an agent needs live PerkOS context or PerkOS infrastructure 
 - ERC-8004 / agent identity-aware requests.
 - Public/private organization knowledge handling.
 - Knowledge request loop: create/list/claim/fulfill/validate research or skill requests.
+- Enterprise Knowledge quality metadata: `confidencePercent`, `trustTier`, validation status, and quality reasons.
 - A2A/council context.
 
 ## Quick commands
@@ -31,6 +32,8 @@ Use this skill when an agent needs live PerkOS context or PerkOS infrastructure 
 node skills/perkos-tech/scripts/perkos_tech.mjs manifest
 node skills/perkos-tech/scripts/perkos_tech.mjs x402-policy
 node skills/perkos-tech/scripts/perkos_tech.mjs query "What does Knowledge know about PerkOS Stack?"
+node skills/perkos-tech/scripts/perkos_tech.mjs query --quality-mode validated_only "validated PerkOS context"
+node skills/perkos-tech/scripts/perkos_tech.mjs query --min-confidence 70 "high-confidence agent payments context"
 node skills/perkos-tech/scripts/perkos_tech.mjs requests --status open
 ```
 
@@ -54,6 +57,13 @@ node skills/perkos-tech/scripts/perkos_tech.mjs request-claim --request kneed_..
 ```
 
 Use `query --create-request-on-miss false` when you want a read-only coverage check.
+
+Quality controls:
+
+- Default server mode is enterprise quality (`minConfidence` currently 45).
+- Use `--quality-mode validated_only` or `--require-validated true` for paid/high-stakes answers.
+- Use `--min-confidence 70` or higher when the agent should only rely on stronger evidence.
+- Agent answers should surface `confidencePercent`, `trustTier`, and `validationStatus`; if results are pending/untrusted, say so instead of presenting them as fact.
 
 ## Rules
 
