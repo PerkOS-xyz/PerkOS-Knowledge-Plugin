@@ -59,6 +59,9 @@ def perkos_knowledge_query(args, **kwargs):
         "createRequestOnMiss": args.get("createRequestOnMiss"),
         "desired_output": args.get("desiredOutput"),
         "missing_topics": args.get("missingTopics"),
+        "qualityMode": args.get("qualityMode"),
+        "minConfidence": args.get("minConfidence"),
+        "requireValidated": args.get("requireValidated"),
     }
     return _request("POST", "/skill/query", body, org_id=args.get("organizationId"))
 

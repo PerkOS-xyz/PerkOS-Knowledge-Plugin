@@ -72,6 +72,9 @@ def main():
     q.add_argument("--limit", type=int, default=int(os.environ.get("KNOWLEDGE_LIMIT", "5")))
     q.add_argument("--create-request-on-miss", default=None)
     q.add_argument("--desired-output", default=None)
+    q.add_argument("--quality-mode", default=os.environ.get("KNOWLEDGE_QUALITY_MODE"))
+    q.add_argument("--min-confidence", type=int, default=int(os.environ["KNOWLEDGE_MIN_CONFIDENCE"]) if os.environ.get("KNOWLEDGE_MIN_CONFIDENCE") else None)
+    q.add_argument("--require-validated", default=None)
     r = sub.add_parser("requests")
     r.add_argument("--status", default="open")
     r.add_argument("--limit", type=int, default=25)
@@ -107,7 +110,16 @@ def main():
         status, payload = request("GET", "/api/x402/policy")
     elif args.cmd == "query":
         create = None if args.create_request_on_miss is None else args.create_request_on_miss.lower() != "false"
-        status, payload = request("POST", "/skill/query", {"query": " ".join(args.query), "limit": args.limit, "createRequestOnMiss": create, "desired_output": args.desired_output})
+        require_validated = None if args.require_validated is None else args.require_validated.lower() != "false"
+        status, payload = request("POST", "/skill/query", {
+            "query": " ".join(args.query),
+            "limit": args.limit,
+            "createRequestOnMiss": create,
+            "desired_output": args.desired_output,
+            "qualityMode": args.quality_mode,
+            "minConfidence": args.min_confidence,
+            "requireValidated": require_validated,
+        })
     elif args.cmd == "requests":
         status, payload = request("GET", f"/knowledge/requests?status={urllib.parse.quote(args.status)}&limit={urllib.parse.quote(str(args.limit))}")
     elif args.cmd == "request-create":
