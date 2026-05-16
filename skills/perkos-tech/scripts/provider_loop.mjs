@@ -21,7 +21,8 @@ const profile = {
   perkyfi: {
     role: 'Markets Research Provider',
     focus: 'markets, trading, PERK/PERKOS, Base, Celo, Uniswap, wallet/token operations',
-    terms: ['trading', 'trade', 'market', 'funding', 'rate', 'defi', 'perk', 'perkos token', 'celo', 'base', 'uniswap', 'wallet', 'token', 'liquidity', 'swap', 'slippage', 'price support']
+    terms: ['trading', 'trade', 'market', 'funding', 'rate', 'defi', 'perk', 'celo', 'base', 'uniswap', 'wallet', 'token', 'liquidity', 'swap', 'slippage'],
+    phrases: ['perkos token', 'price support']
   },
   perky: {
     role: 'Research Librarian Provider',
@@ -31,9 +32,10 @@ const profile = {
   'perkos-agent': {
     role: 'Ecosystem Research Provider',
     focus: 'PerkOS ecosystem, architecture, x402, ERC-8004, A2A, Knowledge, agent workflows',
-    terms: ['perkos', 'ecosystem', 'architecture', 'roadmap', 'agent', 'agents', 'x402', 'erc-8004', 'erc8004', 'a2a', 'knowledge', 'openclaw', 'plugin', 'provider', 'request']
+    terms: ['perkos', 'ecosystem', 'architecture', 'roadmap', 'agent', 'agents', 'x402', 'erc-8004', 'erc8004', 'a2a', 'knowledge', 'openclaw', 'plugin'],
+    phrases: ['agent workflows', 'knowledge request lifecycle']
   }
-}[AGENT_ID] || { role: 'Knowledge Provider', focus: 'general PerkOS Knowledge requests', terms: [] };
+}[AGENT_ID] || { role: 'Knowledge Provider', focus: 'general PerkOS Knowledge requests', terms: [], phrases: [] };
 
 function log(msg) {
   console.log(`${new Date().toISOString()} ${AGENT_ID} ${msg}`);
@@ -68,11 +70,18 @@ function isTestNoise(r) {
   return /\b(test|testing|qa|dummy|employing|hello|asdf)\b/.test(q) && q.length < 80;
 }
 
+function hasWord(q, term) {
+  const escaped = term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return new RegExp(`(^|[^a-z0-9])${escaped}([^a-z0-9]|$)`, 'i').test(q);
+}
+
 function matchesProfile(r) {
   if (isTestNoise(r) && !INCLUDE_TESTS) return false;
   if (AGENT_ID === 'perky') return true;
   const q = lowerRequest(r);
-  return profile.terms.some((t) => q.includes(t));
+  const terms = profile.terms || [];
+  const phrases = profile.phrases || [];
+  return terms.some((t) => hasWord(q, t)) || phrases.some((p) => q.includes(p));
 }
 
 async function listRequests(status) {
