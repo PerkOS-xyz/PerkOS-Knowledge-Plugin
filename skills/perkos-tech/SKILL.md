@@ -84,3 +84,54 @@ Quality controls:
 - For missing context, prefer creating a Knowledge request instead of hallucinating.
 
 See `references/perkos-api.md` for API details.
+
+## Knowledge provider loop
+
+For onboarded PerkOS Knowledge research providers, run one proactive request-processing cycle:
+
+```bash
+KNOWLEDGE_AGENT_ID=perky KNOWLEDGE_ORG_ID=org_perkos node skills/perkos-tech/scripts/provider_loop.mjs --agent perky --max 1
+KNOWLEDGE_AGENT_ID=perkyfi KNOWLEDGE_ORG_ID=org_perkos node skills/perkos-tech/scripts/provider_loop.mjs --agent perkyfi --max 1
+KNOWLEDGE_AGENT_ID=perkos-agent KNOWLEDGE_ORG_ID=org_perkos node skills/perkos-tech/scripts/provider_loop.mjs --agent perkos-agent --max 1
+```
+
+Use `--dry-run` to inspect matching work without claim/submit/fulfill writes.
+
+The loop:
+
+1. Lists open and already-claimed Knowledge requests.
+2. Filters requests to the provider role:
+   - `perkyfi`: markets, trading, PERK/PERKOS, Base, Celo, Uniswap, wallet/token operations.
+   - `perkos-agent`: PerkOS ecosystem, architecture, x402, ERC-8004, A2A, Knowledge, agent workflows.
+   - `perky`: general research, competitive/trends, librarian/default requests.
+3. Claims at most `--max` matching request(s).
+4. Generates concise private research using the configured local PerkOS LLM.
+5. Submits the research with evidence metadata.
+6. Fulfills the request with the returned Knowledge item ID.
+
+Required environment for writes:
+
+```bash
+KNOWLEDGE_INGEST_TOKEN=...
+KNOWLEDGE_AGENT_ID=perky|perkyfi|perkos-agent
+KNOWLEDGE_ORG_ID=org_perkos
+KNOWLEDGE_BASE_URL=https://knowledge.perkos.xyz
+```
+
+Optional environment:
+
+```bash
+PERKOS_LLM_URL=http://127.0.0.1:5140
+KNOWLEDGE_PROVIDER_MODEL=qwen2.5:7b
+KNOWLEDGE_PROVIDER_MAX_PER_RUN=1
+KNOWLEDGE_PROVIDER_LLM_TIMEOUT_MS=120000
+KNOWLEDGE_PROVIDER_INCLUDE_TESTS=1
+```
+
+Production guidance:
+
+- Run as the actual provider agent identity, not as a generic server worker.
+- Keep `--max 1` for heartbeat/timer loops to avoid noisy bursts.
+- Keep provider timers staggered and jittered.
+- Do not enable real x402 payouts until validation/accounting are active.
+- Treat generated research as pending validation unless it includes explicit source links or validated evidence.
