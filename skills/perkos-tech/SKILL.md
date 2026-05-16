@@ -1,6 +1,6 @@
 ---
 name: perkos-tech
-version: 0.2.6
+version: 0.2.8
 license: MIT
 compatibility: OpenClaw and Hermes; requires network access to PerkOS APIs; optional Python 3.11+ or Node 22+ helper scripts.
 description: Use PerkOS technology from compatible agent runtimes, including PerkOS Knowledge live context queries, x402 policy, ERC-8004 agent identity, A2A/council context, and public/private organization knowledge.
