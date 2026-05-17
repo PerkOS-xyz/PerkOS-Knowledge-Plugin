@@ -1,6 +1,6 @@
 {
   "name": "@perkos/perkos-tech-plugin",
-  "version": "0.2.9",
+  "version": "0.2.10",
   "description": "PerkOS technology integration for OpenClaw, Hermes, MCP, and AgentSkills-compatible runtimes.",
   "type": "module",
   "license": "MIT",

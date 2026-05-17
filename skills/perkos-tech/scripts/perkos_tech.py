@@ -8,6 +8,7 @@ import urllib.parse
 import urllib.request
 
 BASE_URL = os.environ.get("KNOWLEDGE_BASE_URL", "https://knowledge.perkos.xyz").rstrip("/")
+LLM_URL = os.environ.get("PERKOS_LLM_URL", "https://api.llm.perkos.xyz").rstrip("/")
 
 
 def openclaw_agent_id():
@@ -62,6 +63,34 @@ def request(method, path, body=None, auth=False):
         return e.code, payload
 
 
+
+def llm_request(path, token):
+    req = urllib.request.Request(LLM_URL + path, headers={"authorization": "Bearer " + token}, method="GET")
+    try:
+        with urllib.request.urlopen(req, timeout=int(os.environ.get("PERKOS_TECH_TIMEOUT", "30"))) as res:
+            raw = res.read().decode("utf-8")
+            return res.status, json.loads(raw) if raw else None
+    except urllib.error.HTTPError as e:
+        raw = e.read().decode("utf-8", errors="replace")
+        try:
+            payload = json.loads(raw) if raw else None
+        except Exception:
+            payload = {"raw": raw}
+        return e.code, payload
+
+
+def current_agent_id():
+    return os.environ.get("KNOWLEDGE_AGENT_ID") or os.environ.get("PERKOS_AGENT_ID") or openclaw_agent_id() or ""
+
+
+def filter_usage_for_agent(payload, agent_id):
+    if not agent_id or not isinstance(payload, dict) or not isinstance(payload.get("agents"), list):
+        return payload
+    out = dict(payload)
+    out["agents"] = [a for a in payload["agents"] if a.get("agentGuid") == agent_id or a.get("agentLabel") == agent_id]
+    out["filter"] = {"agentId": agent_id}
+    return out
+
 def parse_evidence(args):
     evidence = []
     if args.evidence:
@@ -109,6 +138,11 @@ def main():
     validate.add_argument("request")
     validate.add_argument("--accepted", default="true")
     validate.add_argument("--notes", default=None)
+    usage = sub.add_parser("llm-usage")
+    usage.add_argument("--hours", type=int, default=24)
+    usage.add_argument("--limit", type=int, default=10000)
+    usage.add_argument("--agent", default=None)
+    usage.add_argument("--self", action="store_true")
     submit = sub.add_parser("submit-research")
     submit.add_argument("--source", default=None)
     submit.add_argument("--visibility", default="private")
@@ -151,6 +185,14 @@ def main():
         status, payload = request("POST", f"/knowledge/requests/{urllib.parse.quote(args.request)}/fulfill", {"research_item_ids": item_ids, "notes": args.notes}, auth=True)
     elif args.cmd == "request-validate":
         status, payload = request("POST", f"/knowledge/requests/{urllib.parse.quote(args.request)}/validate", {"accepted": args.accepted.lower() != "false", "validation_notes": args.notes}, auth=True)
+    elif args.cmd == "llm-usage":
+        token = os.environ.get("PERKOS_LLM_ADMIN_TOKEN") or os.environ.get("ADMIN_TOKEN") or ""
+        if not token:
+            raise SystemExit("PERKOS_LLM_ADMIN_TOKEN or ADMIN_TOKEN required")
+        status, payload = llm_request(f"/admin/llm-usage?hours={urllib.parse.quote(str(args.hours))}&limit={urllib.parse.quote(str(args.limit))}", token)
+        agent_id = args.agent or (current_agent_id() if args.self else "")
+        if 200 <= status < 300 and agent_id:
+            payload = filter_usage_for_agent(payload, agent_id)
     else:
         status, payload = request("POST", "/api/ingest/research", {
             "source": args.source,

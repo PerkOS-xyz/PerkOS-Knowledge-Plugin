@@ -1,6 +1,6 @@
 ---
 name: perkos-tech
-version: 0.2.9
+version: 0.2.10
 license: MIT
 compatibility: OpenClaw and Hermes; requires network access to PerkOS APIs; optional Python 3.11+ or Node 22+ helper scripts.
 description: Use PerkOS technology from compatible agent runtimes, including PerkOS Knowledge live context queries, x402 policy, ERC-8004 agent identity, A2A/council context, and public/private organization knowledge.
@@ -25,6 +25,7 @@ Use this skill when an agent needs live PerkOS context or PerkOS infrastructure 
 - Knowledge request loop: create/list/claim/fulfill/validate research or skill requests.
 - Enterprise Knowledge quality metadata: `confidencePercent`, `trustTier`, validation status, and quality reasons.
 - A2A/council context.
+- PerkOS LLM usage metering reports for pay-per-use preparation.
 
 ## Quick commands
 
@@ -35,12 +36,14 @@ node skills/perkos-tech/scripts/perkos_tech.mjs query "What does Knowledge know 
 node skills/perkos-tech/scripts/perkos_tech.mjs query --quality-mode validated_only "validated PerkOS context"
 node skills/perkos-tech/scripts/perkos_tech.mjs query --min-confidence 70 "high-confidence agent payments context"
 node skills/perkos-tech/scripts/perkos_tech.mjs requests --status open
+PERKOS_LLM_ADMIN_TOKEN=$ADMIN_TOKEN node skills/perkos-tech/scripts/perkos_tech.mjs llm-usage --hours 24
 ```
 
 Hermes/Python-compatible helper:
 
 ```bash
 python3 skills/perkos-tech/scripts/perkos_tech.py query "What does Knowledge know about PerkOS Stack?"
+PERKOS_LLM_ADMIN_TOKEN=$ADMIN_TOKEN python3 skills/perkos-tech/scripts/perkos_tech.py llm-usage --hours 24
 ```
 
 Private/org query:
@@ -64,6 +67,21 @@ node skills/perkos-tech/scripts/perkos_tech.mjs submit-research \
 ```
 
 Use `query --create-request-on-miss false` when you want a read-only coverage check.
+
+LLM usage metering:
+
+```bash
+PERKOS_LLM_URL=https://api.llm.perkos.xyz \
+PERKOS_LLM_ADMIN_TOKEN=$ADMIN_TOKEN \
+node skills/perkos-tech/scripts/perkos_tech.mjs llm-usage --hours 24 --limit 10000
+
+# Filter output to this agent when the runtime sets KNOWLEDGE_AGENT_ID or x-agent-id:
+PERKOS_LLM_ADMIN_TOKEN=$ADMIN_TOKEN \
+KNOWLEDGE_SEND_AGENT_ID=1 KNOWLEDGE_AGENT_ID=perkos-trading \
+node skills/perkos-tech/scripts/perkos_tech.mjs llm-usage --hours 24 --self
+```
+
+`llm-usage` calls the LLM proxy admin endpoint and requires `PERKOS_LLM_ADMIN_TOKEN` or `ADMIN_TOKEN`. Do not print or commit that token.
 
 Quality controls:
 
