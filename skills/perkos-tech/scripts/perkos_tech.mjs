@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 const BASE_URL = (process.env.KNOWLEDGE_BASE_URL || 'https://knowledge.perkos.xyz').replace(/\/$/, '');
+const LLM_URL = (process.env.PERKOS_LLM_URL || 'https://api.llm.perkos.xyz').replace(/\/$/, '');
 
 function openclawAgentId() {
   if (process.env.KNOWLEDGE_SEND_AGENT_ID !== '1') return null;
@@ -63,6 +64,35 @@ function takeAll(args, name) {
   return values;
 }
 
+
+async function llmReq(path, token) {
+  const res = await fetch(`${LLM_URL}${path}`, {
+    method: 'GET',
+    headers: { authorization: `Bearer ${token}` }
+  });
+  const text = await res.text();
+  let payload;
+  try { payload = text ? JSON.parse(text) : null; } catch { payload = { raw: text }; }
+  if (!res.ok) {
+    console.log(JSON.stringify(payload, null, 2));
+    process.exit(1);
+  }
+  return payload;
+}
+
+function currentAgentId() {
+  return process.env.KNOWLEDGE_AGENT_ID || process.env.PERKOS_AGENT_ID || openclawAgentId() || '';
+}
+
+function filterUsageForAgent(payload, agentId) {
+  if (!agentId || !payload || !Array.isArray(payload.agents)) return payload;
+  return {
+    ...payload,
+    agents: payload.agents.filter((agent) => agent.agentGuid === agentId || agent.agentLabel === agentId),
+    filter: { agentId }
+  };
+}
+
 function parseEvidence(raw, urls, paths, notes) {
   const evidence = [];
   if (raw) {
@@ -83,7 +113,7 @@ function parseEvidence(raw, urls, paths, notes) {
 
 const [cmd, ...rest0] = process.argv.slice(2);
 const rest = [...rest0];
-const usage = 'Usage: perkos_tech.mjs manifest|x402-policy|query|requests|request-create|request-claim|request-fulfill|request-validate|submit-research ...';
+const usage = 'Usage: perkos_tech.mjs manifest|x402-policy|query|requests|request-create|request-claim|request-fulfill|request-validate|submit-research|llm-usage ...';
 if (!cmd) { console.error(usage); process.exit(2); }
 
 if (cmd === 'manifest') await req('GET', '/skill/manifest');
@@ -129,6 +159,15 @@ else if (cmd === 'query') {
   const requestId = take(rest, 'request') || rest[0];
   if (!requestId) { console.error('request id required'); process.exit(2); }
   await req('POST', `/knowledge/requests/${encodeURIComponent(requestId)}/validate`, { accepted: take(rest, 'accepted', 'true') !== 'false', validation_notes: take(rest, 'notes', undefined) }, true);
+} else if (cmd === 'llm-usage') {
+  const token = process.env.PERKOS_LLM_ADMIN_TOKEN || process.env.ADMIN_TOKEN || '';
+  if (!token) { console.error('PERKOS_LLM_ADMIN_TOKEN or ADMIN_TOKEN required'); process.exit(2); }
+  const hours = encodeURIComponent(take(rest, 'hours', '24'));
+  const limit = encodeURIComponent(take(rest, 'limit', '10000'));
+  const self = take(rest, 'self', undefined) !== undefined;
+  const agent = take(rest, 'agent', self ? currentAgentId() : '');
+  const payload = await llmReq(`/admin/llm-usage?hours=${hours}&limit=${limit}`, token);
+  console.log(JSON.stringify(agent ? filterUsageForAgent(payload, agent) : payload, null, 2));
 } else if (cmd === 'submit-research') {
   const path = take(rest, 'path', undefined);
   if (!path) { console.error('--path required'); process.exit(2); }
