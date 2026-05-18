@@ -3,7 +3,7 @@
 | Runtime | Surface | Status | Notes |
 | --- | --- | --- | --- |
 | OpenClaw | Native plugin via `openclaw.plugin.json` + `src/index.ts` | Supported | Read tools default; write/provider tools optional allowlist. Requires normal HTTPS CA trust from host/container. |
-| Hermes | Python wrapper in `hermes/perkos-tech/` | Supported | Uses standard library HTTP and Hermes tool schemas. Minimal containers must include `ca-certificates` or equivalent. |
+| Hermes | Python wrapper in `hermes/perkos-tech/` | Supported | Tested on real `nousresearch/hermes-agent` runtime. Uses standard library HTTP and Hermes tool schemas. Minimal containers must include `ca-certificates` or equivalent. |
 | MCP clients | `dist/mcp/server.js` stdio server | Supported | Same conceptual tools with MCP-friendly names. Requires standard HTTPS CA trust. |
 | AgentSkills-compatible runtimes | `skills/perkos-tech/` | Supported | Human/agent instructions plus Node/Python helper scripts. Python helper needs a configured CA bundle. |
 
@@ -20,6 +20,24 @@
 | Fulfill request | `perkos_knowledge_request_fulfill` | `perkos_knowledge_request_fulfill` | `knowledge_request_fulfill` | `request-fulfill` |
 | Validate request | `perkos_knowledge_request_validate` | `perkos_knowledge_request_validate` | `knowledge_request_validate` | `request-validate` |
 | Submit research | `perkos_knowledge_submit_research` | `perkos_knowledge_submit_research` | `knowledge_submit_research` | `submit-research` |
+
+## Real Hermes Agent notes
+
+Real Hermes Agent deployments should install both surfaces:
+
+- `hermes/perkos-tech/` → Hermes plugin directory, usually `/opt/data/plugins/perkos-tech` in Docker.
+- `skills/perkos-tech/` → Hermes skill/helper directory, for example `/opt/data/skills/perkos/perkos-tech`.
+
+Enable the plugin in `config.yaml`:
+
+```yaml
+plugins:
+  enabled:
+    - perkos-tech
+  disabled: []
+```
+
+If the Hermes agent also uses the PerkOS LLM proxy, use `api_mode: chat_completions` for the custom provider. In live testing, `api_mode: responses` caused upstream `401 Missing Authentication header` against `api.llm.perkos.xyz`, while `chat_completions` worked and Hermes `/v1/responses` still returned normally.
 
 ## HTTPS/TLS certificate trust
 

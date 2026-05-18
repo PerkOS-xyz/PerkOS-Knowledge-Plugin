@@ -99,9 +99,37 @@ node dist/mcp/server.js
 
 Hermes/other MCP clients can use the example at `examples/hermes.config.yaml`.
 
-## Hermes Python wrapper
+## Hermes Agent real runtime
 
-Copy or mount `hermes/perkos-tech/` into the Hermes plugin directory and expose the tools listed in `plugin.yaml`.
+For a real Hermes Agent container or host install, copy or mount `hermes/perkos-tech/` into the Hermes plugin directory and enable it in Hermes config:
+
+```yaml
+plugins:
+  enabled:
+    - perkos-tech
+  disabled: []
+```
+
+Recommended layout for a Docker-backed Hermes Agent:
+
+```bash
+# Hermes data volume, for example /opt/data inside nousresearch/hermes-agent
+mkdir -p /opt/data/plugins /opt/data/skills/perkos
+cp -R hermes/perkos-tech /opt/data/plugins/perkos-tech
+cp -R skills/perkos-tech /opt/data/skills/perkos/perkos-tech
+```
+
+Then restart Hermes so plugin discovery reloads. Verify:
+
+```bash
+hermes plugins list | grep perkos-tech
+hermes tools list | grep -i perkos
+python3 /opt/data/skills/perkos/perkos-tech/scripts/perkos_tech.py manifest
+```
+
+When the same Hermes agent uses the PerkOS LLM proxy, configure it as a custom provider using chat-completions transport. Production testing against `api.llm.perkos.xyz` showed Hermes `api_mode: responses` can fail upstream with `401 Missing Authentication header`; `chat_completions` works while the Hermes outer `/v1/responses` API still works.
+
+See `examples/hermes-agent.config.yaml`.
 
 The wrapper uses only Python standard library HTTP calls and the same environment variables as the Node client. Make sure the host/container has a trusted CA bundle installed; otherwise Python HTTPS calls may fail with `CERTIFICATE_VERIFY_FAILED`.
 
