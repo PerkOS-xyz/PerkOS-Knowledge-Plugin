@@ -22,6 +22,7 @@ Confirm `npm pack --dry-run` includes at least:
 - `skills/`
 - `hermes/`
 - `examples/`
+- `examples/hermes-agent.config.yaml`
 - `docs/`
 - `README.md`
 - `LICENSE`
@@ -109,3 +110,14 @@ npx perkos-tech-mcp --help || true
 ```
 
 Then test one live Knowledge read call from OpenClaw/Hermes/MCP before enabling provider write tools on production agents.
+
+For real Hermes Agent releases, additionally verify against `nousresearch/hermes-agent` or an equivalent Hermes install:
+
+```bash
+hermes plugins list | grep perkos-tech
+hermes tools list | grep -i perkos
+python3 /opt/data/skills/perkos/perkos-tech/scripts/perkos_tech.py manifest
+python3 /opt/data/skills/perkos/perkos-tech/scripts/perkos_tech.py requests --limit 1
+```
+
+If using the PerkOS LLM proxy, verify the custom provider uses `api_mode: chat_completions` and that Hermes `/v1/responses` returns a simple test reply.

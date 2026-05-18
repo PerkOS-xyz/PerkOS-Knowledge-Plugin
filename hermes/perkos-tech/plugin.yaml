@@ -1,5 +1,5 @@
 name: perkos-tech
-version: 0.2.0
+version: 0.2.11
 description: PerkOS Knowledge, x402, ERC-8004 identity, organization-aware context, and request-loop tools.
 provides_tools:
   - perkos_knowledge_query
@@ -15,6 +15,12 @@ requires_env:
   - name: KNOWLEDGE_BASE_URL
     description: PerkOS Knowledge base URL. Defaults to https://knowledge.perkos.xyz if unset.
     secret: false
+  - name: KNOWLEDGE_ORG_ID
+    description: Optional PerkOS Knowledge organization scope, for example org_perkos.
+    secret: false
   - name: KNOWLEDGE_INGEST_TOKEN
     description: Required only for provider request claim/fulfill/validate and research submit actions.
+    secret: true
+  - name: PERKOS_LLM_API_KEY
+    description: Optional PerkOS LLM key when the same Hermes agent uses api.llm.perkos.xyz.
     secret: true

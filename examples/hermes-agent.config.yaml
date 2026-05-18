@@ -1,0 +1,30 @@
+# Real Hermes Agent config example for PerkOS Tech / Knowledge
+# Copy relevant sections into ~/.hermes/config.yaml or /opt/data/config.yaml.
+
+model:
+  default: kimi-k2.6:cloud
+  provider: custom
+  base_url: https://api.llm.perkos.xyz/v1
+
+# Hermes uses this endpoint through chat_completions mode. In production testing,
+# api_mode: responses caused upstream 401s against the PerkOS LLM proxy even
+# when the outer Hermes /v1/responses API worked.
+custom_providers:
+  - name: perkos-llm
+    provider_key: perkos-llm
+    base_url: https://api.llm.perkos.xyz/v1
+    key_env: PERKOS_LLM_API_KEY
+    model: kimi-k2.6:cloud
+    api_mode: chat_completions
+
+plugins:
+  enabled:
+    - perkos-tech
+  disabled: []
+
+# Environment expected by the container/process:
+# PERKOS_LLM_API_KEY=...
+# KNOWLEDGE_BASE_URL=https://knowledge.perkos.xyz
+# KNOWLEDGE_ORG_ID=org_perkos
+# Provider/write tools only:
+# KNOWLEDGE_INGEST_TOKEN=...
