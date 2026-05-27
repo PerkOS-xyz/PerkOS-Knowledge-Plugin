@@ -1,5 +1,8 @@
 # Runtime Matrix
 
+For complete role setup, read `docs/agent-role-integration.md` first. This
+matrix maps the same conceptual capabilities to each supported runtime.
+
 | Runtime | Surface | Status | Notes |
 | --- | --- | --- | --- |
 | OpenClaw | Native plugin via `openclaw.plugin.json` + `src/index.ts` | Supported | Read tools default; write/provider tools optional allowlist. Requires normal HTTPS CA trust from host/container. |

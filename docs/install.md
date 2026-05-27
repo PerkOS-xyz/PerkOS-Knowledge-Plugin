@@ -7,6 +7,10 @@ PerkOS Tech Plugin is distributed as one package with four compatibility surface
 - Hermes Python wrapper
 - AgentSkills-compatible skill folder
 
+For role-specific setup, tool allowlists, environment variables, and end-to-end
+consumer/provider/validator processes, start with
+`docs/agent-role-integration.md`.
+
 ## Prerequisites
 
 PerkOS Knowledge uses standard public HTTPS. No PerkOS-specific certificate is required, but agents must run in an environment with a normal public CA certificate bundle.
