@@ -94,6 +94,7 @@ Responses include `quality` metadata plus per-item `validationStatus`, `confiden
 
 ## Install and release docs
 
+- Agent role integration guide: `docs/agent-role-integration.md`
 - Installation: `docs/install.md`
 - Runtime compatibility matrix: `docs/runtime-matrix.md`
 - Release checklist: `docs/release.md`
