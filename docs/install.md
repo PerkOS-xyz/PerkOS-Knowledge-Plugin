@@ -54,7 +54,7 @@ Do not commit real tokens, wallets, keys, or org-private values.
 Install from the git repo or npm package once published:
 
 ```bash
-npm install @perkos/perkos-tech-plugin
+npm install @perkos/perkos-knowledge-plugin
 ```
 
 Enable the plugin using the package's `openclaw.plugin.json`. Read/query tools are safe by default. Optional write/provider tools must be explicitly allowlisted.
@@ -96,7 +96,7 @@ For paid/high-stakes consumers, configure calls with `qualityMode=validated_only
 Run the MCP server:
 
 ```bash
-npx -p @perkos/perkos-tech-plugin perkos-tech-mcp
+npx -p @perkos/perkos-knowledge-plugin perkos-tech-mcp
 # or from a checkout after build:
 node dist/mcp/server.js
 ```

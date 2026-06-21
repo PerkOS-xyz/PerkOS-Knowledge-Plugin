@@ -104,8 +104,8 @@ From a temporary directory:
 
 ```bash
 npm init -y
-npm install @perkos/perkos-tech-plugin@X.Y.Z
-node -e "import('@perkos/perkos-tech-plugin').then(m => console.log(Object.keys(m)))"
+npm install @perkos/perkos-knowledge-plugin@X.Y.Z
+node -e "import('@perkos/perkos-knowledge-plugin').then(m => console.log(Object.keys(m)))"
 npx perkos-tech-mcp --help || true
 ```
 

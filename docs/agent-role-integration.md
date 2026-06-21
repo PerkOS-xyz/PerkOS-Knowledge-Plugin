@@ -1,6 +1,6 @@
 # Agent Role Integration Guide
 
-This guide is the starting point for any agent or operator integrating PerkOS Knowledge through `@perkos/perkos-tech-plugin`.
+This guide is the starting point for any agent or operator integrating PerkOS Knowledge through `@perkos/perkos-knowledge-plugin`.
 
 Read this with:
 
@@ -140,7 +140,7 @@ Do not commit real tokens, wallets, private organization IDs, or service credent
 OpenClaw:
 
 ```bash
-npm install @perkos/perkos-tech-plugin
+npm install @perkos/perkos-knowledge-plugin
 ```
 
 Enable `openclaw.plugin.json` in the agent config, then allow optional write tools only for requester/provider/validator roles.
@@ -165,7 +165,7 @@ plugins:
 MCP:
 
 ```bash
-npx -p @perkos/perkos-tech-plugin perkos-tech-mcp
+npx -p @perkos/perkos-knowledge-plugin perkos-tech-mcp
 ```
 
 AgentSkill-only runtime:
