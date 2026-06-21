@@ -14,7 +14,7 @@ export type KnowledgeQueryParams = {
     createRequestOnMiss?: boolean;
     desiredOutput?: string;
     missingTopics?: string[];
-    qualityMode?: 'enterprise' | 'validated_only' | string;
+    qualityMode?: 'standard' | 'enterprise' | 'validated_only' | string;
     minConfidence?: number;
     requireValidated?: boolean;
 };

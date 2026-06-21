@@ -1,5 +1,5 @@
 name: perkos-tech
-version: 0.2.12
+version: 0.2.13
 description: PerkOS Knowledge, x402, ERC-8004 identity, organization-aware context, and request-loop tools.
 provides_tools:
   - perkos_knowledge_query

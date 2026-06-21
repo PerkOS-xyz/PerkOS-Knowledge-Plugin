@@ -67,8 +67,8 @@ export default definePluginEntry({
         createRequestOnMiss: Type.Optional(Type.Boolean({ description: 'Create a Knowledge request when coverage is insufficient.', default: true })),
         desiredOutput: Type.Optional(Type.String({ description: 'Desired output type for auto-created request, e.g. brief, report, skill.' })),
         missingTopics: Type.Optional(Type.Array(Type.String(), { description: 'Known missing topics for request creation.' })),
-        qualityMode: Type.Optional(Type.String({ description: 'Quality policy: enterprise (default) or validated_only.' })),
-        minConfidence: Type.Optional(Type.Number({ description: 'Minimum confidencePercent 0-100. Enterprise default on server is 45.' })),
+        qualityMode: Type.Optional(Type.String({ description: 'Quality policy: standard (default — rank, no hard floor), enterprise (confidence >= 45), or validated_only.' })),
+        minConfidence: Type.Optional(Type.Number({ description: 'Minimum confidencePercent 0-100. Server default floor is 0 (standard); enterprise floors at 45.' })),
         requireValidated: Type.Optional(Type.Boolean({ description: 'Only return independently validated Knowledge items.' }))
       }),
       async execute(_id, params) {

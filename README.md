@@ -103,7 +103,7 @@ All nine tools are exposed identically across every runtime surface — the Open
 
 `perkos_knowledge_query` supports the production quality controls exposed by `knowledge.perkos.xyz`:
 
-- `qualityMode`: `enterprise` (default) or `validated_only`
+- `qualityMode`: `standard` (default — rank by quality, no hard floor), `enterprise` (confidence ≥ 45), or `validated_only`
 - `minConfidence`: minimum `confidencePercent` from 0-100
 - `requireValidated`: only return independently validated items
 
