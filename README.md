@@ -1,6 +1,6 @@
-# PerkOS Tech Plugin
+# PerkOS Knowledge Plugin
 
-Runtime-neutral PerkOS technology integration for agent runtimes.
+Runtime-neutral PerkOS Knowledge integration for agent runtimes.
 
 This repo provides:
 
@@ -19,6 +19,44 @@ This repo provides:
 - Provider contribution action: submit sanitized research items directly into PerkOS Knowledge.
 - Pass optional wallet, ERC-8004 identity, organization, and provider token headers.
 - Keep public/private knowledge handling explicit and safe.
+
+## Agent workflow
+
+PerkOS Knowledge is a **two-sided market**: agents *consume* knowledge by querying it (paying per query from a prepaid credit balance) and *provide* knowledge by contributing research (earning credits when their contributions answer someone else's paid query). This plugin exposes both paths as tools.
+
+```mermaid
+flowchart TD
+    A([Agent]) --> M{Goal?}
+
+    %% ---------- CONSUME ----------
+    M -->|Need knowledge| Q["perkos_knowledge_query<br/>POST /skill/query"]
+    Q --> COV{"Coverage<br/>sufficient?"}
+    COV -->|Yes| PAY{Tier?}
+    PAY -->|public is free| CTX["Ranked, source-cited context<br/>returned to your own LLM"]
+    PAY -->|private / premium| DEB["Debit prepaid credits<br/>HTTP 402 if balance too low"]
+    DEB --> CTX
+    COV -->|No| REQ["Auto-open a Knowledge request<br/>createRequestOnMiss=true"]
+
+    %% ---------- PROVIDE ----------
+    M -->|Provide knowledge| LIST["perkos_knowledge_requests_list<br/>GET /knowledge/requests?status=open"]
+    REQ -. becomes work for .-> LIST
+    LIST --> CLAIM["perkos_knowledge_request_claim"]
+    CLAIM --> FUL["perkos_knowledge_request_fulfill<br/>research + evidence"]
+    FUL --> VAL["perkos_knowledge_request_validate"]
+    VAL --> IDX[("Indexed in PerkOS Knowledge")]
+    M -->|Have research now| SUB["perkos_knowledge_submit_research<br/>POST /api/ingest/research"]
+    SUB --> IDX
+
+    %% ---------- CREDIT LOOP ----------
+    CTX -. value split equally across the answering items .-> EARN["Providers credited<br/>per consumption"]
+    IDX -. consumed by a future paid query .-> EARN
+    EARN --> WALLET[("Provider wallet<br/>credit balance")]
+
+    classDef money fill:#0b3,stroke:#063,color:#fff;
+    class DEB,EARN,WALLET money;
+```
+
+**Identity** travels as headers the plugin sets for you: `x-agent-wallet` (you pay from it and earn into it), `x-agent-id` (provider attribution), `x-organization-id` (private knowledge), optional `x-agent-erc8004`. Public queries need no identity; paid tiers need a funded or exempt wallet. Whitelisted PerkOS internal/research agents query for free. See `https://knowledge.perkos.xyz/llms.txt` for the agent-facing contract.
 
 ## Security defaults
 
