@@ -1,12 +1,12 @@
 {
   "name": "@perkos/perkos-knowledge-plugin",
-  "version": "0.2.13",
+  "version": "0.3.0",
   "description": "PerkOS Knowledge integration for OpenClaw, Hermes, MCP, and AgentSkills-compatible runtimes.",
   "type": "module",
   "license": "MIT",
   "private": false,
   "bin": {
-    "perkos-tech-mcp": "dist/mcp/server.js"
+    "perkos-knowledge-mcp": "dist/mcp/server.js"
   },
   "exports": {
     ".": "./dist/src/client.js",
@@ -16,7 +16,7 @@
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "check": "tsc --noEmit -p tsconfig.json",
-    "py:check": "python3 -c \"import ast,pathlib; [ast.parse(pathlib.Path(p).read_text()) for p in ['hermes/perkos-tech/tools.py','hermes/perkos-tech/schemas.py','skills/perkos-tech/scripts/perkos_tech.py']]\"",
+    "py:check": "python3 -c \"import ast,pathlib; [ast.parse(pathlib.Path(p).read_text()) for p in ['hermes/perkos-knowledge/tools.py','hermes/perkos-knowledge/schemas.py','skills/perkos-knowledge/scripts/perkos_tech.py']]\"",
     "smoke": "node scripts/smoke.mjs",
     "mcp": "node dist/mcp/server.js",
     "pack:dry-run": "npm pack --dry-run"

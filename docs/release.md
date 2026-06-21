@@ -48,7 +48,7 @@ Update these together:
 - `package.json` version
 - `package-lock.json` version
 - `openclaw.plugin.json` version
-- `hermes/perkos-tech/plugin.yaml` version
+- `hermes/perkos-knowledge/plugin.yaml` version
 - `mcp/server.ts` server version
 
 Then rebuild so `dist/` matches source.
@@ -106,7 +106,7 @@ From a temporary directory:
 npm init -y
 npm install @perkos/perkos-knowledge-plugin@X.Y.Z
 node -e "import('@perkos/perkos-knowledge-plugin').then(m => console.log(Object.keys(m)))"
-npx perkos-tech-mcp --help || true
+npx perkos-knowledge-mcp --help || true
 ```
 
 Then test one live Knowledge read call from OpenClaw/Hermes/MCP before enabling provider write tools on production agents.
@@ -114,10 +114,10 @@ Then test one live Knowledge read call from OpenClaw/Hermes/MCP before enabling 
 For real Hermes Agent releases, additionally verify against `nousresearch/hermes-agent` or an equivalent Hermes install:
 
 ```bash
-hermes plugins list | grep perkos-tech
+hermes plugins list | grep perkos-knowledge
 hermes tools list | grep -i perkos
-python3 /opt/data/skills/perkos/perkos-tech/scripts/perkos_tech.py manifest
-python3 /opt/data/skills/perkos/perkos-tech/scripts/perkos_tech.py requests --limit 1
+python3 /opt/data/skills/perkos/perkos-knowledge/scripts/perkos_tech.py manifest
+python3 /opt/data/skills/perkos/perkos-knowledge/scripts/perkos_tech.py requests --limit 1
 ```
 
 If using the PerkOS LLM proxy, verify the custom provider uses `api_mode: chat_completions` and that Hermes `/v1/responses` returns a simple test reply.

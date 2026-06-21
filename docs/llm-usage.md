@@ -7,7 +7,7 @@ The skill includes an `llm-usage` helper for reading usage aggregates from the P
 ```bash
 PERKOS_LLM_URL=https://api.llm.perkos.xyz \
 PERKOS_LLM_ADMIN_TOKEN=$ADMIN_TOKEN \
-node skills/perkos-tech/scripts/perkos_tech.mjs llm-usage --hours 24 --limit 10000
+node skills/perkos-knowledge/scripts/perkos_tech.mjs llm-usage --hours 24 --limit 10000
 ```
 
 ## Python / Hermes
@@ -15,7 +15,7 @@ node skills/perkos-tech/scripts/perkos_tech.mjs llm-usage --hours 24 --limit 100
 ```bash
 PERKOS_LLM_URL=https://api.llm.perkos.xyz \
 PERKOS_LLM_ADMIN_TOKEN=$ADMIN_TOKEN \
-python3 skills/perkos-tech/scripts/perkos_tech.py llm-usage --hours 24 --limit 10000
+python3 skills/perkos-knowledge/scripts/perkos_tech.py llm-usage --hours 24 --limit 10000
 ```
 
 ## Self filter
@@ -25,7 +25,7 @@ Use `--self` to keep only the current agent when `KNOWLEDGE_AGENT_ID` is set or 
 ```bash
 PERKOS_LLM_ADMIN_TOKEN=$ADMIN_TOKEN \
 KNOWLEDGE_SEND_AGENT_ID=1 KNOWLEDGE_AGENT_ID=perkos-trading \
-node skills/perkos-tech/scripts/perkos_tech.mjs llm-usage --hours 24 --self
+node skills/perkos-knowledge/scripts/perkos_tech.mjs llm-usage --hours 24 --self
 ```
 
 ## Environment

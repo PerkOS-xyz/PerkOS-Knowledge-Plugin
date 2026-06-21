@@ -4,7 +4,7 @@ Runtime-neutral PerkOS Knowledge integration for agent runtimes.
 
 This repo provides:
 
-- **AgentSkill**: shared `perkos-tech` instructions for OpenClaw, Hermes, and AgentSkills-compatible runtimes.
+- **AgentSkill**: shared `perkos-knowledge` instructions for OpenClaw, Hermes, and AgentSkills-compatible runtimes.
 - **OpenClaw plugin**: typed OpenClaw tools for PerkOS Knowledge, x402 policy, and identity-aware context queries.
 - **Hermes plugin wrapper**: Python plugin surface for Hermes Agent.
 - **MCP server**: portable tool bridge for runtimes that support Model Context Protocol.
@@ -102,13 +102,13 @@ If the Python helper fails with `CERTIFICATE_VERIFY_FAILED`, install/update `ca-
 ## Layout
 
 ```text
-perkos-tech-plugin/
+perkos-knowledge-plugin/
 ├── openclaw.plugin.json
 ├── package.json
 ├── src/                 # OpenClaw plugin + shared client
 ├── mcp/                 # Runtime-neutral MCP server
-├── skills/perkos-tech/  # AgentSkill shared by OpenClaw/Hermes
-├── hermes/perkos-tech/  # Hermes plugin wrapper
+├── skills/perkos-knowledge/  # AgentSkill shared by OpenClaw/Hermes
+├── hermes/perkos-knowledge/  # Hermes plugin wrapper
 └── examples/            # Runtime config examples
 ```
 
@@ -133,7 +133,7 @@ Optional/write/provider tools:
 - `perkos_knowledge_request_validate`
 - `perkos_knowledge_submit_research`
 
-OpenClaw users should allow optional tools explicitly, e.g. `tools.allow: ["perkos-tech"]` or specific tool names, and only on trusted provider agents.
+OpenClaw users should allow optional tools explicitly, e.g. `tools.allow: ["perkos-knowledge"]` or specific tool names, and only on trusted provider agents.
 
 All nine tools are exposed identically across every runtime surface — the OpenClaw plugin, the Hermes Python plugin, and the MCP server. On Hermes the provider/write tools (`request_claim`, `request_fulfill`, `request_validate`, `submit_research`) auto-register only when `KNOWLEDGE_INGEST_TOKEN` is set; in OpenClaw they are marked optional and must be allowlisted on trusted provider agents.
 

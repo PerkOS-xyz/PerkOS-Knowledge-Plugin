@@ -4,7 +4,7 @@ import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import { z } from 'zod';
 import { PerkOsClient } from '../src/client.js';
 
-const server = new McpServer({ name: 'perkos-tech', version: '0.2.11' });
+const server = new McpServer({ name: 'perkos-knowledge', version: '0.3.0' });
 const client = new PerkOsClient();
 
 server.tool('skill_manifest', 'Fetch the PerkOS Knowledge live skill manifest.', {}, async () => ({

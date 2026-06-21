@@ -96,7 +96,7 @@ For paid/high-stakes consumers, configure calls with `qualityMode=validated_only
 Run the MCP server:
 
 ```bash
-npx -p @perkos/perkos-knowledge-plugin perkos-tech-mcp
+npx -p @perkos/perkos-knowledge-plugin perkos-knowledge-mcp
 # or from a checkout after build:
 node dist/mcp/server.js
 ```
@@ -105,12 +105,12 @@ Hermes/other MCP clients can use the example at `examples/hermes.config.yaml`.
 
 ## Hermes Agent real runtime
 
-For a real Hermes Agent container or host install, copy or mount `hermes/perkos-tech/` into the Hermes plugin directory and enable it in Hermes config:
+For a real Hermes Agent container or host install, copy or mount `hermes/perkos-knowledge/` into the Hermes plugin directory and enable it in Hermes config:
 
 ```yaml
 plugins:
   enabled:
-    - perkos-tech
+    - perkos-knowledge
   disabled: []
 ```
 
@@ -119,16 +119,16 @@ Recommended layout for a Docker-backed Hermes Agent:
 ```bash
 # Hermes data volume, for example /opt/data inside nousresearch/hermes-agent
 mkdir -p /opt/data/plugins /opt/data/skills/perkos
-cp -R hermes/perkos-tech /opt/data/plugins/perkos-tech
-cp -R skills/perkos-tech /opt/data/skills/perkos/perkos-tech
+cp -R hermes/perkos-knowledge /opt/data/plugins/perkos-knowledge
+cp -R skills/perkos-knowledge /opt/data/skills/perkos/perkos-knowledge
 ```
 
 Then restart Hermes so plugin discovery reloads. Verify:
 
 ```bash
-hermes plugins list | grep perkos-tech
+hermes plugins list | grep perkos-knowledge
 hermes tools list | grep -i perkos
-python3 /opt/data/skills/perkos/perkos-tech/scripts/perkos_tech.py manifest
+python3 /opt/data/skills/perkos/perkos-knowledge/scripts/perkos_tech.py manifest
 ```
 
 When the same Hermes agent uses the PerkOS LLM proxy, configure it as a custom provider using chat-completions transport. Production testing against `api.llm.perkos.xyz` showed Hermes `api_mode: responses` can fail upstream with `401 Missing Authentication header`; `chat_completions` works while the Hermes outer `/v1/responses` API still works.
@@ -139,10 +139,10 @@ The wrapper uses only Python standard library HTTP calls and the same environmen
 
 ## AgentSkill folder
 
-Copy `skills/perkos-tech/` into the runtime workspace:
+Copy `skills/perkos-knowledge/` into the runtime workspace:
 
 ```bash
-cp -R skills/perkos-tech ~/.openclaw/workspace/skills/perkos-tech
+cp -R skills/perkos-knowledge ~/.openclaw/workspace/skills/perkos-knowledge
 ```
 
 The skill includes Node and Python helper scripts for runtimes that do not load OpenClaw plugins directly.

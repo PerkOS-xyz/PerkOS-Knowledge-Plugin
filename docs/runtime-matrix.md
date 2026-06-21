@@ -6,9 +6,9 @@ matrix maps the same conceptual capabilities to each supported runtime.
 | Runtime | Surface | Status | Notes |
 | --- | --- | --- | --- |
 | OpenClaw | Native plugin via `openclaw.plugin.json` + `src/index.ts` | Supported | Read tools default; write/provider tools optional allowlist. Requires normal HTTPS CA trust from host/container. |
-| Hermes | Python wrapper in `hermes/perkos-tech/` | Supported | Tested on real `nousresearch/hermes-agent` runtime. Uses standard library HTTP and Hermes tool schemas. Minimal containers must include `ca-certificates` or equivalent. |
+| Hermes | Python wrapper in `hermes/perkos-knowledge/` | Supported | Tested on real `nousresearch/hermes-agent` runtime. Uses standard library HTTP and Hermes tool schemas. Minimal containers must include `ca-certificates` or equivalent. |
 | MCP clients | `dist/mcp/server.js` stdio server | Supported | Same conceptual tools with MCP-friendly names. Requires standard HTTPS CA trust. |
-| AgentSkills-compatible runtimes | `skills/perkos-tech/` | Supported | Human/agent instructions plus Node/Python helper scripts. Python helper needs a configured CA bundle. |
+| AgentSkills-compatible runtimes | `skills/perkos-knowledge/` | Supported | Human/agent instructions plus Node/Python helper scripts. Python helper needs a configured CA bundle. |
 
 ## Capability matrix
 
@@ -28,15 +28,15 @@ matrix maps the same conceptual capabilities to each supported runtime.
 
 Real Hermes Agent deployments should install both surfaces:
 
-- `hermes/perkos-tech/` → Hermes plugin directory, usually `/opt/data/plugins/perkos-tech` in Docker.
-- `skills/perkos-tech/` → Hermes skill/helper directory, for example `/opt/data/skills/perkos/perkos-tech`.
+- `hermes/perkos-knowledge/` → Hermes plugin directory, usually `/opt/data/plugins/perkos-knowledge` in Docker.
+- `skills/perkos-knowledge/` → Hermes skill/helper directory, for example `/opt/data/skills/perkos/perkos-knowledge`.
 
 Enable the plugin in `config.yaml`:
 
 ```yaml
 plugins:
   enabled:
-    - perkos-tech
+    - perkos-knowledge
   disabled: []
 ```
 

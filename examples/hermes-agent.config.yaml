@@ -19,7 +19,7 @@ custom_providers:
 
 plugins:
   enabled:
-    - perkos-tech
+    - perkos-knowledge
   disabled: []
 
 # Environment expected by the container/process:

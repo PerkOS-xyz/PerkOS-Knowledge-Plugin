@@ -1,7 +1,7 @@
 {
   "plugins": {
     "entries": {
-      "perkos-tech": {
+      "perkos-knowledge": {
         "enabled": true,
         "config": {
           "baseUrl": "https://knowledge.perkos.xyz",

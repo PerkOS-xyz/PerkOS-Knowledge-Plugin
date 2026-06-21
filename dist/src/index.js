@@ -14,7 +14,7 @@ function stringArray(value) {
     return Array.isArray(value) ? value.map((entry) => String(entry)).filter(Boolean) : undefined;
 }
 export default definePluginEntry({
-    id: 'perkos-tech',
+    id: 'perkos-knowledge',
     name: 'PerkOS Tech',
     description: 'PerkOS Knowledge, x402, ERC-8004 identity, and organization-aware context tools.',
     register(api) {

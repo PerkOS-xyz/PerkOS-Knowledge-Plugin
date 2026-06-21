@@ -149,8 +149,8 @@ Hermes Agent:
 
 ```bash
 mkdir -p /opt/data/plugins /opt/data/skills/perkos
-cp -R hermes/perkos-tech /opt/data/plugins/perkos-tech
-cp -R skills/perkos-tech /opt/data/skills/perkos/perkos-tech
+cp -R hermes/perkos-knowledge /opt/data/plugins/perkos-knowledge
+cp -R skills/perkos-knowledge /opt/data/skills/perkos/perkos-knowledge
 ```
 
 Enable:
@@ -158,20 +158,20 @@ Enable:
 ```yaml
 plugins:
   enabled:
-    - perkos-tech
+    - perkos-knowledge
   disabled: []
 ```
 
 MCP:
 
 ```bash
-npx -p @perkos/perkos-knowledge-plugin perkos-tech-mcp
+npx -p @perkos/perkos-knowledge-plugin perkos-knowledge-mcp
 ```
 
 AgentSkill-only runtime:
 
 ```bash
-cp -R skills/perkos-tech <agent-workspace>/skills/perkos-tech
+cp -R skills/perkos-knowledge <agent-workspace>/skills/perkos-knowledge
 ```
 
 Full runtime details are in `docs/install.md`.
@@ -236,9 +236,9 @@ npm run smoke
 For AgentSkill helper installs:
 
 ```bash
-node skills/perkos-tech/scripts/perkos_tech.mjs manifest
-node skills/perkos-tech/scripts/perkos_tech.mjs query "What does Knowledge know about PerkOS Stack?"
-python3 skills/perkos-tech/scripts/perkos_tech.py manifest
+node skills/perkos-knowledge/scripts/perkos_tech.mjs manifest
+node skills/perkos-knowledge/scripts/perkos_tech.mjs query "What does Knowledge know about PerkOS Stack?"
+python3 skills/perkos-knowledge/scripts/perkos_tech.py manifest
 ```
 
 For provider installs:
