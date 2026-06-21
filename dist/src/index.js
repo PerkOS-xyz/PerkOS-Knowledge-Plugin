@@ -1,4 +1,4 @@
-import { Type } from '@sinclair/typebox';
+import { Type } from 'typebox';
 import { definePluginEntry } from 'openclaw/plugin-sdk/plugin-entry';
 import { PerkOsClient } from './client.js';
 function text(payload) {
@@ -13,21 +13,32 @@ function record(params) {
 function stringArray(value) {
     return Array.isArray(value) ? value.map((entry) => String(entry)).filter(Boolean) : undefined;
 }
-function client() {
-    return new PerkOsClient();
-}
 export default definePluginEntry({
     id: 'perkos-tech',
     name: 'PerkOS Tech',
     description: 'PerkOS Knowledge, x402, ERC-8004 identity, and organization-aware context tools.',
     register(api) {
+        // Prefer OpenClaw plugin config (manifest configSchema); PerkOsClient falls
+        // back to env vars for any field left unset. Built once — session-stable.
+        const cfg = (() => {
+            const c = api.pluginConfig;
+            return c && typeof c === 'object' ? c : {};
+        })();
+        const knowledge = new PerkOsClient({
+            baseUrl: typeof cfg.baseUrl === 'string' ? cfg.baseUrl : undefined,
+            organizationId: typeof cfg.organizationId === 'string' ? cfg.organizationId : undefined,
+            sendAgentId: typeof cfg.sendAgentId === 'boolean' ? cfg.sendAgentId : undefined,
+            agentWallet: typeof cfg.agentWallet === 'string' ? cfg.agentWallet : undefined,
+            agentErc8004: typeof cfg.agentErc8004 === 'string' ? cfg.agentErc8004 : undefined,
+            ingestToken: typeof cfg.ingestToken === 'string' ? cfg.ingestToken : undefined,
+        });
         api.registerTool({
             name: 'perkos_skill_manifest',
             label: 'PerkOS skill manifest',
             description: 'Fetch the PerkOS Knowledge live skill manifest.',
             parameters: Type.Object({}),
             async execute() {
-                return text(await client().manifest());
+                return text(await knowledge.manifest());
             }
         });
         api.registerTool({
@@ -36,7 +47,7 @@ export default definePluginEntry({
             description: 'Fetch current PerkOS Knowledge x402 metering/payment policy.',
             parameters: Type.Object({}),
             async execute() {
-                return text(await client().x402Policy());
+                return text(await knowledge.x402Policy());
             }
         });
         api.registerTool({
@@ -56,7 +67,7 @@ export default definePluginEntry({
             }),
             async execute(_id, params) {
                 const p = record(params);
-                return text(await client().query({
+                return text(await knowledge.query({
                     query: String(p.query || ''),
                     limit: typeof p.limit === 'number' ? p.limit : undefined,
                     organizationId: typeof p.organizationId === 'string' ? p.organizationId : undefined,
@@ -79,7 +90,7 @@ export default definePluginEntry({
             }),
             async execute(_id, params) {
                 const p = record(params);
-                return text(await client().listRequests({
+                return text(await knowledge.listRequests({
                     status: typeof p.status === 'string' ? p.status : undefined,
                     limit: typeof p.limit === 'number' ? p.limit : undefined
                 }));
@@ -99,7 +110,7 @@ export default definePluginEntry({
             }),
             async execute(_id, params) {
                 const p = record(params);
-                return text(await client().createRequest({
+                return text(await knowledge.createRequest({
                     query: String(p.query || ''),
                     priority: typeof p.priority === 'string' ? p.priority : undefined,
                     desiredOutput: typeof p.desiredOutput === 'string' ? p.desiredOutput : undefined,
@@ -119,7 +130,7 @@ export default definePluginEntry({
             }),
             async execute(_id, params) {
                 const p = record(params);
-                return text(await client().claimRequest({ requestId: String(p.requestId || ''), notes: typeof p.notes === 'string' ? p.notes : undefined }));
+                return text(await knowledge.claimRequest({ requestId: String(p.requestId || ''), notes: typeof p.notes === 'string' ? p.notes : undefined }));
             }
         }, { optional: true });
         api.registerTool({
@@ -133,7 +144,7 @@ export default definePluginEntry({
             }),
             async execute(_id, params) {
                 const p = record(params);
-                return text(await client().fulfillRequest({
+                return text(await knowledge.fulfillRequest({
                     requestId: String(p.requestId || ''),
                     researchItemIds: stringArray(p.researchItemIds),
                     notes: typeof p.notes === 'string' ? p.notes : undefined
@@ -151,7 +162,7 @@ export default definePluginEntry({
             }),
             async execute(_id, params) {
                 const p = record(params);
-                return text(await client().validateRequest({
+                return text(await knowledge.validateRequest({
                     requestId: String(p.requestId || ''),
                     accepted: typeof p.accepted === 'boolean' ? p.accepted : undefined,
                     validationNotes: typeof p.validationNotes === 'string' ? p.validationNotes : undefined
@@ -185,7 +196,7 @@ export default definePluginEntry({
             async execute(_id, params) {
                 const p = record(params);
                 const items = Array.isArray(p.items) ? p.items.map((item) => record(item)) : [];
-                return text(await client().submitResearch({
+                return text(await knowledge.submitResearch({
                     source: typeof p.source === 'string' ? p.source : undefined,
                     visibility: typeof p.visibility === 'string' ? p.visibility : undefined,
                     organizationId: typeof p.organizationId === 'string' ? p.organizationId : undefined,
