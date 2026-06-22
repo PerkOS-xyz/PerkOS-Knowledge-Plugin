@@ -1,6 +1,6 @@
 {
   "name": "@perkos/perkos-knowledge-plugin",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "PerkOS Knowledge integration for OpenClaw, Hermes, MCP, and AgentSkills-compatible runtimes.",
   "type": "module",
   "license": "MIT",

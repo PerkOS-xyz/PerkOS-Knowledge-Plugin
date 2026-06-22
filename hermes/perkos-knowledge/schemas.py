@@ -13,6 +13,7 @@ PERKOS_KNOWLEDGE_QUERY = {
             "qualityMode": {"type": "string", "description": "Quality policy: standard (default, rank/no hard floor), enterprise (confidence >= 45), or validated_only."},
             "minConfidence": {"type": "number", "description": "Minimum confidencePercent 0-100. Server default floor is 0 (standard); enterprise floors at 45."},
             "requireValidated": {"type": "boolean", "description": "Only return independently validated Knowledge items."},
+            "payChain": {"type": "string", "enum": ["base", "celo"], "description": "Which chain's prepaid balance to spend (and earn providers on). Default base."},
         },
         "required": ["query"],
     },

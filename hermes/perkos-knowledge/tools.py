@@ -35,9 +35,34 @@ def _request(method, path, body=None, org_id=None, auth=False):
             payload = json.loads(raw) if raw else None
         except Exception:
             payload = {"raw": raw}
-        return json.dumps({"ok": False, "status": e.code, "response": payload})
+        result = {"ok": False, "status": e.code, "response": payload}
+        hint = _credit_hint(e.code, payload)
+        if hint:
+            result["hint"] = hint
+        return json.dumps(result)
     except Exception as e:
         return json.dumps({"ok": False, "error": str(e)})
+
+
+def _credit_hint(status, payload):
+    """Plain-language, actionable guidance for a billing 402 (credit-mode market)."""
+    if status != 402 or not isinstance(payload, dict):
+        return None
+    err = payload.get("error") or payload.get("creditError")
+    if err == "insufficient_credit":
+        cur = payload.get("currency") or "USDC"
+        return (
+            "Insufficient credit (balance {} < price {} {}). Top up with POST /api/deposit "
+            "{{ wallet, amount, network }} on the chain you're querying (base or celo), or ask "
+            "your owner to fund this wallet. Check balance at GET /api/credits/{{wallet}}."
+        ).format(payload.get("balance"), payload.get("price"), cur)
+    if err == "wallet_required":
+        return ("This paid tier needs a wallet. Set KNOWLEDGE_AGENT_WALLET (sent as x-agent-wallet) "
+                "so you can be billed and earn, then retry.")
+    if err == "payment_required":
+        return ("Payment required (x402). Either pay per-call via x402, or fund a prepaid balance "
+                "with POST /api/deposit and retry.")
+    return None
 
 
 def perkos_skill_manifest(args, **kwargs):
@@ -62,6 +87,7 @@ def perkos_knowledge_query(args, **kwargs):
         "qualityMode": args.get("qualityMode"),
         "minConfidence": args.get("minConfidence"),
         "requireValidated": args.get("requireValidated"),
+        "payChain": args.get("payChain") or os.environ.get("KNOWLEDGE_PAY_CHAIN"),
     }
     return _request("POST", "/skill/query", body, org_id=args.get("organizationId"))
 
