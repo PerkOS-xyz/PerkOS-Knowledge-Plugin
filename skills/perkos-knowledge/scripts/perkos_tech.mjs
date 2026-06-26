@@ -35,11 +35,25 @@ function requestOptions(method, body, auth) {
   };
 }
 
+function creditHint(status, payload) {
+  if (status !== 402 || !payload || typeof payload !== 'object') return undefined;
+  const err = payload.error || payload.creditError;
+  if (err === 'insufficient_credit') {
+    const cur = payload.currency || 'USDC';
+    return `Insufficient credit (balance ${payload.balance} < price ${payload.price} ${cur}). Top up with POST /api/deposit { wallet, amount, network } on the chain you're querying (base or celo), or ask your owner to fund this wallet. Check balance at GET /api/credits/{wallet}.`;
+  }
+  if (err === 'wallet_required') return 'This paid tier needs a wallet. Set KNOWLEDGE_AGENT_WALLET (sent as x-agent-wallet) so you can be billed and earn, then retry.';
+  if (err === 'payment_required') return 'Payment required (x402). Either pay per-call via x402, or fund a prepaid balance with POST /api/deposit and retry.';
+  return undefined;
+}
+
 async function req(method, path, body, auth = false) {
   const res = await fetch(`${BASE_URL}${path}`, requestOptions(method, body, auth));
   const text = await res.text();
   let payload;
   try { payload = text ? JSON.parse(text) : null; } catch { payload = { raw: text }; }
+  const hint = creditHint(res.status, payload);
+  if (hint && payload && typeof payload === 'object' && !payload.hint) payload.hint = hint;
   console.log(JSON.stringify(payload, null, 2));
   if (!res.ok) process.exit(1);
 }
@@ -125,6 +139,7 @@ else if (cmd === 'query') {
   const qualityMode = take(rest, 'quality-mode', process.env.KNOWLEDGE_QUALITY_MODE || undefined);
   const minConfidenceRaw = take(rest, 'min-confidence', process.env.KNOWLEDGE_MIN_CONFIDENCE || undefined);
   const requireValidatedRaw = take(rest, 'require-validated', undefined);
+  const payChain = take(rest, 'pay-chain', process.env.KNOWLEDGE_PAY_CHAIN || undefined);
   const query = rest.join(' ').trim();
   if (!query) { console.error('query required'); process.exit(2); }
   await req('POST', '/skill/query', {
@@ -134,7 +149,8 @@ else if (cmd === 'query') {
     desired_output: desired,
     qualityMode,
     minConfidence: minConfidenceRaw === undefined ? undefined : Number(minConfidenceRaw),
-    requireValidated: requireValidatedRaw === undefined ? undefined : requireValidatedRaw !== 'false'
+    requireValidated: requireValidatedRaw === undefined ? undefined : requireValidatedRaw !== 'false',
+    payChain
   });
 } else if (cmd === 'requests') {
   const status = encodeURIComponent(take(rest, 'status', 'open'));

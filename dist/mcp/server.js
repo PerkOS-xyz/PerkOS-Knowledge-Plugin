@@ -20,7 +20,8 @@ server.tool('knowledge_query', 'Query PerkOS Knowledge for public or organizatio
     missingTopics: z.array(z.string()).optional(),
     qualityMode: z.string().optional(),
     minConfidence: z.number().optional(),
-    requireValidated: z.boolean().optional()
+    requireValidated: z.boolean().optional(),
+    payChain: z.enum(['base', 'celo']).optional()
 }, async (args) => ({
     content: [{ type: 'text', text: JSON.stringify(await client.query(args), null, 2) }]
 }));

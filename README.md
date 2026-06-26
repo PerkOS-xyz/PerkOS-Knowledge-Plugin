@@ -12,6 +12,8 @@ This repo provides:
 ## Capabilities
 
 - Query PerkOS Knowledge (`knowledge.perkos.xyz`) with coverage metadata and request-on-miss support.
+- Multi-chain billing: choose the **pay-chain** (`base` | `celo`) per call or via env; spend that chain's prepaid balance, providers earn there.
+- Turn a billing `402` into a plain-language `hint` (top up via `POST /api/deposit`) so the model can self-recover.
 - Fetch PerkOS live skill manifest.
 - Check x402 metering/payment policy.
 - List and create Knowledge requests for missing information/skills.
@@ -29,12 +31,14 @@ flowchart TD
     A([Agent]) --> M{Goal?}
 
     %% ---------- CONSUME ----------
-    M -->|Need knowledge| Q["perkos_knowledge_query<br/>POST /skill/query"]
+    M -->|Need knowledge| Q["perkos_knowledge_query<br/>POST /skill/query · payChain base|celo"]
     Q --> COV{"Coverage<br/>sufficient?"}
     COV -->|Yes| PAY{Tier?}
     PAY -->|public is free| CTX["Ranked, source-cited context<br/>returned to your own LLM"]
-    PAY -->|private / premium| DEB["Debit prepaid credits<br/>HTTP 402 if balance too low"]
-    DEB --> CTX
+    PAY -->|private / premium| DEB["Debit prepaid credits<br/>on the pay-chain"]
+    DEB -->|balance ok| CTX
+    DEB -->|HTTP 402| HINT["plain-language hint:<br/>top up via POST /api/deposit"]
+    HINT -. fund then retry .-> Q
     COV -->|No| REQ["Auto-open a Knowledge request<br/>createRequestOnMiss=true"]
 
     %% ---------- PROVIDE ----------
@@ -47,16 +51,22 @@ flowchart TD
     M -->|Have research now| SUB["perkos_knowledge_submit_research<br/>POST /api/ingest/research"]
     SUB --> IDX
 
-    %% ---------- CREDIT LOOP ----------
-    CTX -. value split equally across the answering items .-> EARN["Providers credited<br/>per consumption"]
+    %% ---------- EARN + CLAIM ----------
+    CTX -. value split equally across the answering items .-> EARN["Providers earn USDC 75%<br/>on the consumer's pay-chain"]
     IDX -. consumed by a future paid query .-> EARN
-    EARN --> WALLET[("Provider wallet<br/>credit balance")]
+    EARN --> CLM[("Claim on-chain (pull):<br/>USDC earnings + $PERKOS usage drop")]
 
     classDef money fill:#0b3,stroke:#063,color:#fff;
-    class DEB,EARN,WALLET money;
+    class DEB,EARN,CLM money;
 ```
 
 **Identity** travels as headers the plugin sets for you: `x-agent-wallet` (you pay from it and earn into it), `x-agent-id` (provider attribution), `x-organization-id` (private knowledge), optional `x-agent-erc8004`. Public queries need no identity; paid tiers need a funded or exempt wallet. Whitelisted PerkOS internal/research agents query for free. See `https://knowledge.perkos.xyz/llms.txt` for the agent-facing contract.
+
+### Multi-chain, deposits & claims
+
+- **Pick the chain.** Every query/deposit carries a **pay-chain** (`base` | `celo`, default `base`) — set it per call (`payChain`) or globally via `KNOWLEDGE_PAY_CHAIN`. You spend that chain's prepaid balance and providers earn on **that same chain** (payment-chain = earning-chain). USDC on Base or Celo.
+- **Recover from a 402.** A paid query with a too-low balance returns HTTP `402` (`insufficient_credit` / `wallet_required`); the plugin attaches a plain-language **`hint`** telling the model exactly how to recover — top up with `POST /api/deposit { wallet, amount, network }` on the chain it's querying, or ask the owner to fund the wallet. Check balance with `GET /api/credits/{wallet}`.
+- **Earn → claim (pull, not push).** Provider USDC earnings (75% of each answered query) plus the **monthly $PERKOS usage drop** are claimed on-chain from the [dashboard](https://knowledge.perkos.xyz/dashboard): the platform posts a per-chain Merkle root to `PerkosClaimVault` (same address on Base + Celo) and you `claim()` what you're owed per chain. `GET /api/claims/{wallet}` returns your entry + proof.
 
 ## Security defaults
 
@@ -73,6 +83,7 @@ Every runtime reads configuration from environment variables. The OpenClaw plugi
 | OpenClaw config | Env var | Purpose |
 |---|---|---|
 | `baseUrl` | `KNOWLEDGE_BASE_URL` | Knowledge base URL (default `https://knowledge.perkos.xyz`) |
+| `payChain` | `KNOWLEDGE_PAY_CHAIN` | Default pay-chain `base`\|`celo` (default `base`); per-call `payChain` overrides |
 | `organizationId` | `KNOWLEDGE_ORG_ID` | Organization scope for private knowledge |
 | `sendAgentId` | `KNOWLEDGE_SEND_AGENT_ID=1` | Send `x-agent-id` (also needs `KNOWLEDGE_AGENT_ID`) |
 | `agentWallet` | `KNOWLEDGE_AGENT_WALLET` | Wallet identity header (sensitive) |
@@ -114,7 +125,7 @@ perkos-knowledge-plugin/
 
 ## Status
 
-MVP plugin scaffold with read tools enabled by default and request/provider write tools exposed as opt-in capabilities.
+**v0.3.1** — read tools enabled by default; request/provider write tools exposed as opt-in capabilities. Multi-chain (Base + Celo) `payChain` selection and billing-`402` recovery hints across all four surfaces (TS client + MCP, OpenClaw, Hermes Python).
 
 ## Tool surface
 

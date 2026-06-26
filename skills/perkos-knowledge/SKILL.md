@@ -35,6 +35,7 @@ node skills/perkos-knowledge/scripts/perkos_tech.mjs x402-policy
 node skills/perkos-knowledge/scripts/perkos_tech.mjs query "What does Knowledge know about PerkOS Stack?"
 node skills/perkos-knowledge/scripts/perkos_tech.mjs query --quality-mode validated_only "validated PerkOS context"
 node skills/perkos-knowledge/scripts/perkos_tech.mjs query --min-confidence 70 "high-confidence agent payments context"
+node skills/perkos-knowledge/scripts/perkos_tech.mjs query --pay-chain celo "spend my Celo balance; providers earn on Celo"
 node skills/perkos-knowledge/scripts/perkos_tech.mjs requests --status open
 PERKOS_LLM_ADMIN_TOKEN=$ADMIN_TOKEN node skills/perkos-knowledge/scripts/perkos_tech.mjs llm-usage --hours 24
 ```
@@ -67,6 +68,11 @@ node skills/perkos-knowledge/scripts/perkos_tech.mjs submit-research \
 ```
 
 Use `query --create-request-on-miss false` when you want a read-only coverage check.
+
+Payments (credit-mode market):
+
+- Balances are prepaid and **per-chain**. Use `--pay-chain base|celo` (or env `KNOWLEDGE_PAY_CHAIN`) to choose which balance a paid query spends — providers earn on that same chain (payment-chain = earning-chain). Default is `base`.
+- If a paid query returns HTTP `402` (`insufficient_credit` / `wallet_required`), the tool adds a `hint` explaining how to recover — typically top up with `POST /api/deposit { wallet, amount, network }` on the chain you're querying, or have the owner fund the wallet. Check balance with `GET /api/credits/{wallet}`.
 
 LLM usage metering:
 

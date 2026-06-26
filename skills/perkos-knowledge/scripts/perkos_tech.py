@@ -46,6 +46,27 @@ def clean_body(body):
     return {key: value for key, value in body.items() if value is not None}
 
 
+def credit_hint(status, payload):
+    """Plain-language, actionable guidance for a billing 402 (credit-mode market)."""
+    if status != 402 or not isinstance(payload, dict):
+        return None
+    err = payload.get("error") or payload.get("creditError")
+    if err == "insufficient_credit":
+        cur = payload.get("currency") or "USDC"
+        return (
+            "Insufficient credit (balance {} < price {} {}). Top up with POST /api/deposit "
+            "{{ wallet, amount, network }} on the chain you're querying (base or celo), or ask "
+            "your owner to fund this wallet. Check balance at GET /api/credits/{{wallet}}."
+        ).format(payload.get("balance"), payload.get("price"), cur)
+    if err == "wallet_required":
+        return ("This paid tier needs a wallet. Set KNOWLEDGE_AGENT_WALLET (sent as x-agent-wallet) "
+                "so you can be billed and earn, then retry.")
+    if err == "payment_required":
+        return ("Payment required (x402). Either pay per-call via x402, or fund a prepaid balance "
+                "with POST /api/deposit and retry.")
+    return None
+
+
 def request(method, path, body=None, auth=False):
     body = clean_body(body)
     data = None if body is None else json.dumps(body).encode("utf-8")
@@ -120,6 +141,7 @@ def main():
     q.add_argument("--quality-mode", default=os.environ.get("KNOWLEDGE_QUALITY_MODE"))
     q.add_argument("--min-confidence", type=int, default=int(os.environ["KNOWLEDGE_MIN_CONFIDENCE"]) if os.environ.get("KNOWLEDGE_MIN_CONFIDENCE") else None)
     q.add_argument("--require-validated", default=None)
+    q.add_argument("--pay-chain", default=os.environ.get("KNOWLEDGE_PAY_CHAIN"), help="Which chain's balance to spend (and earn providers on): base|celo (default base)")
     r = sub.add_parser("requests")
     r.add_argument("--status", default="open")
     r.add_argument("--limit", type=int, default=25)
@@ -173,6 +195,7 @@ def main():
             "qualityMode": args.quality_mode,
             "minConfidence": args.min_confidence,
             "requireValidated": require_validated,
+            "payChain": args.pay_chain,
         })
     elif args.cmd == "requests":
         status, payload = request("GET", f"/knowledge/requests?status={urllib.parse.quote(args.status)}&limit={urllib.parse.quote(str(args.limit))}")
@@ -209,6 +232,9 @@ def main():
             }]
         }, auth=True)
 
+    hint = credit_hint(status, payload)
+    if hint and isinstance(payload, dict) and "hint" not in payload:
+        payload["hint"] = hint
     print(json.dumps(payload, indent=2, ensure_ascii=False))
     return 0 if 200 <= status < 300 else 1
 

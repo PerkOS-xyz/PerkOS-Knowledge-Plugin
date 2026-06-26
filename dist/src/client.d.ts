@@ -17,6 +17,8 @@ export type KnowledgeQueryParams = {
     qualityMode?: 'standard' | 'enterprise' | 'validated_only' | string;
     minConfidence?: number;
     requireValidated?: boolean;
+    /** Which chain's prepaid balance to spend (and earn providers on). 'base' | 'celo', default 'base'. */
+    payChain?: 'base' | 'celo' | string;
 };
 export type KnowledgeRequestCreateParams = {
     query: string;
@@ -63,6 +65,11 @@ export type KnowledgeSubmitResearchParams = {
     contributionType?: string;
     items: KnowledgeContributionItem[];
 };
+/**
+ * Turn a billing 402 into a plain-language, actionable hint for the model so it
+ * doesn't just see a raw error blob. Covers the credit-mode market errors.
+ */
+export declare function creditHint(status: number, payload: unknown): string | undefined;
 export declare class PerkOsClient {
     private readonly baseUrl;
     private readonly options;

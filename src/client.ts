@@ -18,6 +18,8 @@ export type KnowledgeQueryParams = {
   qualityMode?: 'standard' | 'enterprise' | 'validated_only' | string;
   minConfidence?: number;
   requireValidated?: boolean;
+  /** Which chain's prepaid balance to spend (and earn providers on). 'base' | 'celo', default 'base'. */
+  payChain?: 'base' | 'celo' | string;
 };
 
 export type KnowledgeRequestCreateParams = {
@@ -72,6 +74,27 @@ export type KnowledgeSubmitResearchParams = {
   items: KnowledgeContributionItem[];
 };
 
+/**
+ * Turn a billing 402 into a plain-language, actionable hint for the model so it
+ * doesn't just see a raw error blob. Covers the credit-mode market errors.
+ */
+export function creditHint(status: number, payload: unknown): string | undefined {
+  if (status !== 402 || !payload || typeof payload !== 'object') return undefined;
+  const p = payload as Record<string, unknown>;
+  const err = p.error || p.creditError;
+  if (err === 'insufficient_credit') {
+    const cur = p.currency || 'USDC';
+    return `Insufficient credit (balance ${p.balance} < price ${p.price} ${cur}). Top up with POST /api/deposit { wallet, amount, network } on the chain you're querying (base or celo), or ask your owner to fund this wallet. Check balance at GET /api/credits/{wallet}.`;
+  }
+  if (err === 'wallet_required') {
+    return `This paid tier needs a wallet. Set KNOWLEDGE_AGENT_WALLET (sent as x-agent-wallet) so you can be billed and earn, then retry.`;
+  }
+  if (err === 'payment_required') {
+    return `Payment required (x402). Either pay per-call via x402, or fund a prepaid balance with POST /api/deposit and retry.`;
+  }
+  return undefined;
+}
+
 export class PerkOsClient {
   private readonly baseUrl: string;
   private readonly options: PerkOsClientOptions;
@@ -116,7 +139,8 @@ export class PerkOsClient {
       missing_topics: params.missingTopics,
       qualityMode: params.qualityMode,
       minConfidence: params.minConfidence,
-      requireValidated: params.requireValidated
+      requireValidated: params.requireValidated,
+      payChain: params.payChain || process.env.KNOWLEDGE_PAY_CHAIN
     }, { organizationId: params.organizationId });
   }
 
@@ -185,7 +209,10 @@ export class PerkOsClient {
       payload = { raw: text };
     }
     if (!res.ok) {
-      return { ok: false, status: res.status, response: payload };
+      const result: { ok: false; status: number; response: unknown; hint?: string } = { ok: false, status: res.status, response: payload };
+      const hint = creditHint(res.status, payload);
+      if (hint) result.hint = hint;
+      return result;
     }
     return payload;
   }
