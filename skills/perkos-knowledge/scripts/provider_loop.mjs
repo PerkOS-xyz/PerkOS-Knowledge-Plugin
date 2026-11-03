@@ -34,8 +34,8 @@ const profile = {
   perkyfi: {
     role: 'Markets Research Provider',
     focus: 'markets, trading, PERK/PERKOS, Base, Celo, Uniswap, wallet/token operations',
-    terms: ['trading', 'trade', 'market', 'funding', 'rate', 'defi', 'perk', 'celo', 'base', 'uniswap', 'wallet', 'token', 'liquidity', 'swap', 'slippage'],
-    phrases: ['perkos token', 'price support']
+    terms: ['trading', 'trade', 'market', 'funding', 'rate', 'defi', 'perk', 'celo', 'base', 'uniswap', 'wallet', 'token', 'tokens', 'tokenized', 'stock', 'stocks', 'equity', 'equities', 'robinhood', 'xstocks', 'backed', 'kraken', 'bybit', 'liquidity', 'swap', 'slippage'],
+    phrases: ['perkos token', 'price support', 'stock token', 'stock tokens', 'tokenized equities']
   },
   perky: {
     role: 'Research Librarian Provider',

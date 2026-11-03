@@ -125,7 +125,7 @@ The loop:
 
 1. Lists open and already-claimed Knowledge requests.
 2. Filters requests to the provider role:
-   - `perkyfi`: markets, trading, PERK/PERKOS, Base, Celo, Uniswap, wallet/token operations.
+   - `perkyfi`: markets, trading, PERK/PERKOS, Base, Celo, Uniswap, wallet/token operations, tokenized equities.
    - `perkos-agent`: PerkOS ecosystem, architecture, x402, ERC-8004, A2A, Knowledge, agent workflows.
    - `perky`: general research, competitive/trends, librarian/default requests.
 3. Claims at most `--max` matching request(s).
