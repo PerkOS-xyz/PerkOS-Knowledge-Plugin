@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import fs from 'node:fs';
-import path from 'node:path';
+import nodePath from 'node:path';
 
 const BASE_URL = (process.env.KNOWLEDGE_BASE_URL || 'https://knowledge.perkos.xyz').replace(/\/$/, '');
 const ORG_ID = process.env.KNOWLEDGE_ORG_ID || 'org_perkos';
@@ -130,9 +130,9 @@ function loadBraveApiKey() {
   const cwd = process.cwd();
   const candidates = [
     process.env.OPENCLAW_CONFIG,
-    path.resolve(cwd, '../home/.openclaw/openclaw.json'),
-    path.resolve(cwd, '../openclaw.json'),
-    path.resolve(cwd, '../../home/.openclaw/openclaw.json')
+    nodePath.resolve(cwd, '../home/.openclaw/openclaw.json'),
+    nodePath.resolve(cwd, '../openclaw.json'),
+    nodePath.resolve(cwd, '../../home/.openclaw/openclaw.json')
   ].filter(Boolean);
 
   for (const file of candidates) {
