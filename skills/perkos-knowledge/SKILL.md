@@ -129,9 +129,10 @@ The loop:
    - `perkos-agent`: PerkOS ecosystem, architecture, x402, ERC-8004, A2A, Knowledge, agent workflows.
    - `perky`: general research, competitive/trends, librarian/default requests.
 3. Claims at most `--max` matching request(s).
-4. Generates concise private research using the configured local PerkOS LLM.
-5. Submits the research with evidence metadata.
-6. Fulfills the request with the returned Knowledge item ID.
+4. Runs a live web search for the request query and keeps the top results.
+5. Generates concise private research using the configured local PerkOS LLM, with those results in the prompt.
+6. Submits the research with the source URLs as evidence metadata.
+7. Fulfills the request with the returned Knowledge item ID.
 
 Required environment for writes:
 
@@ -150,7 +151,16 @@ KNOWLEDGE_PROVIDER_MODEL=qwen2.5:7b
 KNOWLEDGE_PROVIDER_MAX_PER_RUN=1
 KNOWLEDGE_PROVIDER_LLM_TIMEOUT_MS=120000
 KNOWLEDGE_PROVIDER_INCLUDE_TESTS=1
+KNOWLEDGE_PROVIDER_SEARCH_LIMIT=5
+KNOWLEDGE_PROVIDER_SEARCH_TIMEOUT_MS=15000
+BRAVE_API_KEY=...
 ```
+
+The search key is read from `BRAVE_API_KEY`, `BRAVE_SEARCH_API_KEY` or
+`BRAVE_SEARCH_TOKEN`, and otherwise from the local OpenClaw config the agent
+already uses (`OPENCLAW_CONFIG`, or `openclaw.json` beside the workspace).
+Without a key the loop still answers, from the model alone, and says in the
+body that no live source was checked.
 
 Production guidance:
 
@@ -159,3 +169,4 @@ Production guidance:
 - Keep provider timers staggered and jittered.
 - Do not enable real x402 payouts until validation/accounting are active.
 - Treat generated research as pending validation unless it includes explicit source links or validated evidence.
+- A run that found live sources records their URLs as evidence; a run without them stays marked pending validation.

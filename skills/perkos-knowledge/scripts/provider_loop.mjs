@@ -1,8 +1,12 @@
 #!/usr/bin/env node
+import fs from 'node:fs';
+import path from 'node:path';
+
 const BASE_URL = (process.env.KNOWLEDGE_BASE_URL || 'https://knowledge.perkos.xyz').replace(/\/$/, '');
 const ORG_ID = process.env.KNOWLEDGE_ORG_ID || 'org_perkos';
 const LLM_URL = (process.env.PERKOS_LLM_URL || 'http://127.0.0.1:5140').replace(/\/$/, '');
 const MODEL = process.env.KNOWLEDGE_PROVIDER_MODEL || process.env.KNOWLEDGE_WORKER_MODEL || 'qwen2.5:7b';
+const SEARCH_LIMIT = Number(process.env.KNOWLEDGE_PROVIDER_SEARCH_LIMIT || '5') || 5;
 
 // The gateway bills whoever asks. Without a key this loop is anonymous
 // traffic: it still gets an answer, but the spend lands on nobody's budget
@@ -98,9 +102,106 @@ async function listRequests(status) {
   return data?.requests || [];
 }
 
-async function generateResearch(request) {
+function getPath(obj, parts) {
+  let cur = obj;
+  for (const part of parts) {
+    if (!cur || typeof cur !== 'object') return undefined;
+    cur = cur[part];
+  }
+  return typeof cur === 'string' && cur.trim() ? cur.trim() : undefined;
+}
+
+function findBraveKeyInObject(obj, trail = []) {
+  if (!obj || typeof obj !== 'object') return undefined;
+  if (typeof obj.apiKey === 'string' && trail.some((p) => /brave|websearch|search/i.test(p))) {
+    return obj.apiKey.trim();
+  }
+  for (const [key, value] of Object.entries(obj)) {
+    const found = findBraveKeyInObject(value, [...trail, key]);
+    if (found) return found;
+  }
+  return undefined;
+}
+
+function loadBraveApiKey() {
+  const explicit = process.env.BRAVE_API_KEY || process.env.BRAVE_SEARCH_API_KEY || process.env.BRAVE_SEARCH_TOKEN;
+  if (explicit) return explicit.trim();
+
+  const cwd = process.cwd();
+  const candidates = [
+    process.env.OPENCLAW_CONFIG,
+    path.resolve(cwd, '../home/.openclaw/openclaw.json'),
+    path.resolve(cwd, '../openclaw.json'),
+    path.resolve(cwd, '../../home/.openclaw/openclaw.json')
+  ].filter(Boolean);
+
+  for (const file of candidates) {
+    try {
+      const raw = fs.readFileSync(file, 'utf8');
+      const cfg = JSON.parse(raw);
+      return (
+        getPath(cfg, ['tools', 'web', 'search', 'apiKey']) ||
+        getPath(cfg, ['plugins', 'entries', 'brave', 'config', 'webSearch', 'apiKey']) ||
+        findBraveKeyInObject(cfg)
+      );
+    } catch {
+      // Keep provider loop robust; missing/unparseable local OpenClaw config only disables live search.
+    }
+  }
+  return undefined;
+}
+
+function normalizeSearchResult(item) {
+  return {
+    title: String(item?.title || '').replace(/\s+/g, ' ').trim(),
+    url: String(item?.url || '').trim(),
+    description: String(item?.description || '').replace(/\s+/g, ' ').trim()
+  };
+}
+
+async function webSearch(query) {
+  const key = loadBraveApiKey();
+  if (!key) {
+    log('WARN web_search unavailable: missing Brave API key');
+    return [];
+  }
+
+  const url = new URL('https://api.search.brave.com/res/v1/web/search');
+  url.searchParams.set('q', query);
+  url.searchParams.set('count', String(Math.min(Math.max(SEARCH_LIMIT, 1), 10)));
+
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), Number(process.env.KNOWLEDGE_PROVIDER_SEARCH_TIMEOUT_MS || 15000));
+  try {
+    const res = await fetch(url, {
+      headers: { accept: 'application/json', 'x-subscription-token': key },
+      signal: ctrl.signal
+    });
+    const text = await res.text();
+    if (!res.ok) {
+      log(`WARN web_search failed http=${res.status}`);
+      return [];
+    }
+    const data = JSON.parse(text);
+    const results = (data?.web?.results || []).map(normalizeSearchResult).filter((r) => r.title && r.url);
+    log(`web_search OK results=${results.length}`);
+    return results.slice(0, SEARCH_LIMIT);
+  } catch (err) {
+    log(`WARN web_search failed: ${err.message}`);
+    return [];
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+function formatSources(sources) {
+  if (!sources.length) return 'No live web search sources were available to this provider loop run.';
+  return sources.map((s, i) => `${i + 1}. ${s.title}\n   URL: ${s.url}\n   Snippet: ${s.description || 'No snippet supplied.'}`).join('\n');
+}
+
+async function generateResearch(request, sources) {
   const query = request.query || '';
-  const prompt = `You are ${AGENT_ID}, the ${profile.role} for PerkOS Knowledge.\n\nProvider focus: ${profile.focus}.\nKnowledge request: ${query}\nDesired output: ${request.desiredOutput || request.desired_output || 'research/context'}\nMissing topics: ${(request.missingTopics || []).join(', ') || 'none supplied'}\n\nProduce a concise internal research response. Requirements:\n- Answer directly and practically.\n- Include a short "Actionable findings" section.\n- Include an "Evidence / validation" section that clearly separates verified facts from assumptions.\n- If live external sources were not checked, say so and mark the item pending validation.\n- Do not invent secrets, tokens, private keys, or unsupported claims.\n- Keep under 900 words.`;
+  const prompt = `You are ${AGENT_ID}, the ${profile.role} for PerkOS Knowledge.\n\nProvider focus: ${profile.focus}.\nKnowledge request: ${query}\nDesired output: ${request.desiredOutput || request.desired_output || 'research/context'}\nMissing topics: ${(request.missingTopics || []).join(', ') || 'none supplied'}\n\nLive web search sources checked:\n${formatSources(sources)}\n\nProduce a concise internal research response. Requirements:\n- Answer directly and practically.\n- Use the live web search sources above when they are relevant.\n- Include a short "Actionable findings" section.\n- Include an "Evidence / validation" section with the specific source URLs used.\n- Clearly separate verified facts from assumptions and unresolved questions.\n- If live external sources were not available, say so and mark the item pending validation.\n- Do not invent secrets, tokens, private keys, source URLs, or unsupported claims.\n- Keep under 900 words.`;
   const payload = { model: MODEL, stream: false, messages: [{ role: 'user', content: prompt }] };
   const ctrl = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), Number(process.env.KNOWLEDGE_PROVIDER_LLM_TIMEOUT_MS || 120000));
@@ -143,18 +244,24 @@ async function processRequest(r, alreadyClaimed = false) {
     log(`claimed request=${id}`);
   }
 
-  const content = await generateResearch(r);
+  const sources = await webSearch(query);
+  const content = await generateResearch(r, sources);
   const title = `Research response: ${query}`.slice(0, 180);
   const summary = content.replace(/\s+/g, ' ').slice(0, 500);
   const path = `requests/${id}-${AGENT_ID}-${slug(query)}.md`;
-  const evidenceNote = `Generated by ${profile.role} (${AGENT_ID}) from PerkOS Knowledge request ${id}. Agent focus: ${profile.focus}. Content is pending validation unless explicit source links are included in the body.`;
+  const evidence = sources.length
+    ? [
+        ...sources.map((s) => ({ type: 'url', url: s.url, note: s.title })),
+        { type: 'note', note: `Generated by ${profile.role} (${AGENT_ID}) from PerkOS Knowledge request ${id}. Agent focus: ${profile.focus}. Live web search returned ${sources.length} result(s); content remains pending validation until independently reviewed.` }
+      ]
+    : [{ type: 'note', note: `Generated by ${profile.role} (${AGENT_ID}) from PerkOS Knowledge request ${id}. Agent focus: ${profile.focus}. Live web search was unavailable or returned no results; content is pending validation.` }];
 
   const submitted = await api('POST', '/api/ingest/research', {
     source: AGENT_ID,
     visibility: 'private',
     organization_id: ORG_ID,
     contribution_type: 'research',
-    items: [{ path, title, summary, content, contribution_type: 'research', evidence: [{ type: 'note', note: evidenceNote }] }]
+    items: [{ path, title, summary, content, contribution_type: 'research', evidence }]
   }, true);
   const itemIds = extractItemIds(submitted);
   if (!itemIds.length) throw new Error(`submit succeeded but no kitem id returned for request=${id}`);
