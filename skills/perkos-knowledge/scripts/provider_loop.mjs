@@ -4,6 +4,15 @@ const ORG_ID = process.env.KNOWLEDGE_ORG_ID || 'org_perkos';
 const LLM_URL = (process.env.PERKOS_LLM_URL || 'http://127.0.0.1:5140').replace(/\/$/, '');
 const MODEL = process.env.KNOWLEDGE_PROVIDER_MODEL || process.env.KNOWLEDGE_WORKER_MODEL || 'qwen2.5:7b';
 
+// The gateway bills whoever asks. Without a key this loop is anonymous
+// traffic: it still gets an answer, but the spend lands on nobody's budget
+// and no limit applies to it. The key is the same one the agent already uses.
+function llmHeaders() {
+  const h = { 'content-type': 'application/json' };
+  if (process.env.PERKOS_LLM_API_KEY) h.authorization = `Bearer ${process.env.PERKOS_LLM_API_KEY}`;
+  return h;
+}
+
 function arg(name, fallback = undefined) {
   const eq = process.argv.find((x) => x.startsWith(`--${name}=`));
   if (eq) return eq.slice(name.length + 3);
@@ -96,7 +105,7 @@ async function generateResearch(request) {
   const ctrl = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), Number(process.env.KNOWLEDGE_PROVIDER_LLM_TIMEOUT_MS || 120000));
   try {
-    const res = await fetch(`${LLM_URL}/api/chat`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(payload), signal: ctrl.signal });
+    const res = await fetch(`${LLM_URL}/api/chat`, { method: 'POST', headers: { ...llmHeaders(), 'x-agent-id': AGENT_ID }, body: JSON.stringify(payload), signal: ctrl.signal });
     const text = await res.text();
     if (!res.ok) throw new Error(`LLM failed ${res.status}: ${text.slice(0, 200)}`);
     const data = JSON.parse(text);
